@@ -10,7 +10,8 @@
 
 # Credenciales y uploads
 **/credentials/
-**/uploads/
+backend/uploads/
+/uploads/
 **/*.pem
 **/*.key
 **/google-service-account*.json
