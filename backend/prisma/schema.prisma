@@ -1,0 +1,457 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  EXPIRED
+  PENDING
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REFUNDED
+  IN_PROCESS
+}
+
+enum PaymentType {
+  SUBSCRIPTION_MONTHLY
+  SUBSCRIPTION_ANNUAL
+  ONE_TIME_COURSE
+  ONE_TIME_CATEGORY
+}
+
+enum PaymentProvider {
+  MERCADOPAGO
+  PAYPAL
+}
+
+enum DemoStatus {
+  AVAILABLE
+  ACTIVE
+  EXPIRED
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum CouponScope {
+  ALL
+  COURSES
+  PLANS
+  CATEGORIES
+}
+
+// ─── User ────────────────────────────────────────────────────────────────────
+
+model User {
+  id                  String    @id @default(uuid())
+  email               String    @unique
+  passwordHash        String
+  firstName           String
+  lastName            String
+  avatarUrl           String?
+  country             String?
+  role                Role      @default(USER)
+  isEmailVerified     Boolean   @default(false)
+  refreshTokenHash    String?
+  passwordResetToken  String?
+  passwordResetExpiry DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  interests    UserInterest[]
+  progress     LessonProgress[]
+  favorites    Favorite[]
+  demo         DemoSession?
+  subscription Subscription?
+  payments     Payment[]
+  purchases    Purchase[]
+
+  @@map("users")
+}
+
+// ─── Interest ────────────────────────────────────────────────────────────────
+
+model Interest {
+  id   String  @id @default(uuid())
+  name String  @unique
+  slug String  @unique
+  icon String?
+
+  users UserInterest[]
+
+  @@map("interests")
+}
+
+model UserInterest {
+  userId     String
+  interestId String
+
+  user     User     @relation(fields: [userId], references: [id])
+  interest Interest @relation(fields: [interestId], references: [id])
+
+  @@id([userId, interestId])
+  @@map("user_interests")
+}
+
+// ─── Category ────────────────────────────────────────────────────────────────
+
+model Category {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  slug         String   @unique
+  description  String?
+  imageUrl     String?
+  price        Decimal? @db.Decimal(10, 2)
+  comparePrice Decimal? @db.Decimal(10, 2)
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courses   Course[]
+  purchases Purchase[]
+
+  @@map("categories")
+}
+
+// ─── Course ──────────────────────────────────────────────────────────────────
+
+model Course {
+  id           String   @id @default(uuid())
+  title        String
+  slug         String   @unique
+  description  String
+  shortDesc    String?
+  thumbnailUrl String?
+  price        Decimal? @db.Decimal(10, 2)
+  comparePrice Decimal? @db.Decimal(10, 2)
+  durationMins Int      @default(0)
+  lessonCount  Int      @default(0)
+  isPublished  Boolean  @default(false)
+  isFeatured   Boolean  @default(false)
+  isVisibleToStudents Boolean @default(true)
+  sortOrder    Int      @default(0)
+  categoryId   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category  Category    @relation(fields: [categoryId], references: [id])
+  modules   Module[]
+  favorites Favorite[]
+  purchases Purchase[]
+  tags      CourseTag[]
+
+  @@index([categoryId])
+  @@index([isPublished, isFeatured])
+  @@map("courses")
+}
+
+// ─── Tag ─────────────────────────────────────────────────────────────────────
+
+model Tag {
+  id   String @id @default(uuid())
+  name String @unique
+  slug String @unique
+
+  courses CourseTag[]
+
+  @@map("tags")
+}
+
+model CourseTag {
+  courseId String
+  tagId   String
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, tagId])
+  @@map("course_tags")
+}
+
+// ─── Module ──────────────────────────────────────────────────────────────────
+
+model Module {
+  id        String @id @default(uuid())
+  title     String
+  sortOrder Int    @default(0)
+  courseId  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
+  resources Resource[]
+
+  @@index([courseId])
+  @@map("modules")
+}
+
+// ─── Resource (PDFs, docs, imágenes, zips vinculados a un módulo) ────────────
+
+enum ResourceType {
+  PDF
+  DOC
+  SHEET
+  PPT
+  IMAGE
+  AUDIO
+  ARCHIVE
+  OTHER
+}
+
+model Resource {
+  id          String       @id @default(uuid())
+  title       String
+  fileName    String
+  driveFileId String
+  mimeType    String
+  type        ResourceType @default(OTHER)
+  sizeBytes   BigInt       @default(0)
+  sortOrder   Int          @default(0)
+  moduleId    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId])
+  @@map("resources")
+}
+
+// ─── Lesson ──────────────────────────────────────────────────────────────────
+
+model Lesson {
+  id              String  @id @default(uuid())
+  title           String
+  description     String?
+  durationSeconds Int     @default(0)
+  sortOrder       Int     @default(0)
+  driveFileId     String
+  isFreePreview   Boolean @default(false)
+  moduleId        String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  module   Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress LessonProgress[]
+
+  @@index([moduleId])
+  @@map("lessons")
+}
+
+// ─── Lesson Progress ─────────────────────────────────────────────────────────
+
+model LessonProgress {
+  id             String    @id @default(uuid())
+  userId         String
+  lessonId       String
+  watchedSeconds Int       @default(0)
+  isCompleted    Boolean   @default(false)
+  completedAt    DateTime?
+  lastWatchedAt  DateTime  @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  lesson Lesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@map("lesson_progress")
+}
+
+// ─── Favorite ────────────────────────────────────────────────────────────────
+
+model Favorite {
+  id       String @id @default(uuid())
+  userId   String
+  courseId String
+
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+  @@map("favorites")
+}
+
+// ─── Demo Session ────────────────────────────────────────────────────────────
+
+model DemoSession {
+  id          String     @id @default(uuid())
+  userId      String     @unique
+  status      DemoStatus @default(AVAILABLE)
+  activatedAt DateTime?
+  expiresAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("demo_sessions")
+}
+
+// ─── Subscription ────────────────────────────────────────────────────────────
+
+model Subscription {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  provider           PaymentProvider    @default(MERCADOPAGO)
+  mpPreapprovalId    String?            @unique
+  paypalSubscriptionId String?          @unique
+  plan               PaymentType
+  status             SubscriptionStatus @default(PENDING)
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelledAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+// ─── Purchase ────────────────────────────────────────────────────────────────
+
+model Purchase {
+  id         String  @id @default(uuid())
+  userId     String
+  courseId   String?
+  categoryId String?
+  paymentId  String  @unique
+
+  createdAt DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course?   @relation(fields: [courseId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+  payment  Payment   @relation(fields: [paymentId], references: [id])
+
+  @@index([userId])
+  @@map("purchases")
+}
+
+// ─── Payment ─────────────────────────────────────────────────────────────────
+
+model Payment {
+  id          String        @id @default(uuid())
+  userId      String
+  provider    PaymentProvider @default(MERCADOPAGO)
+  mpPaymentId String?       @unique
+  paypalOrderId String?     @unique
+  type        PaymentType
+  amount      Decimal       @db.Decimal(10, 2)
+  currency    String        @default("USD")
+  status      PaymentStatus @default(PENDING)
+  mpStatus    String?
+  mpDetail    Json?
+
+  couponCode     String?
+  discountAmount Decimal? @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchase Purchase?
+
+  @@index([userId])
+  @@index([status])
+  @@map("payments")
+}
+
+// ─── Plan ────────────────────────────────────────────────────────────────────
+
+model Plan {
+  id            String      @id @default(uuid())
+  key           PaymentType @unique
+  label         String
+  price         Decimal     @db.Decimal(10, 2)
+  comparePrice  Decimal?    @db.Decimal(10, 2)
+  currency      String      @default("USD")
+  badge         String?
+  savings       String?
+  features      String[]
+  isActive      Boolean     @default(true)
+  sortOrder     Int         @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("plans")
+}
+
+// ─── Coupon ──────────────────────────────────────────────────────────────────
+
+model Coupon {
+  id           String       @id @default(uuid())
+  code         String       @unique
+  description  String?
+  discountType DiscountType
+  value        Decimal      @db.Decimal(10, 2)
+  scope        CouponScope  @default(ALL)
+  validFrom    DateTime?
+  validUntil   DateTime?
+  usageLimit   Int?
+  usedCount    Int          @default(0)
+  isActive     Boolean      @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("coupons")
+}
+
+// ─── SiteSettings (singleton) ────────────────────────────────────────────────
+
+model SiteSettings {
+  id String @id @default(uuid())
+
+  // Modo oferta global (aplica a todos los planes y alimenta la cinta)
+  plansPromoEnabled Boolean   @default(false)
+  plansPromoEndsAt  DateTime?
+
+  // Cinta promocional (el countdown, si está activo, usa plansPromoEndsAt)
+  promoRibbonEnabled       Boolean @default(false)
+  promoRibbonText          String  @default("Oferta por tiempo limitado")
+  promoRibbonSecondaryText String?
+  promoRibbonShowCountdown Boolean @default(false)
+  promoRibbonCtaText       String? @default("Ver planes")
+  promoRibbonCtaUrl        String? @default("/#pricing")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}
