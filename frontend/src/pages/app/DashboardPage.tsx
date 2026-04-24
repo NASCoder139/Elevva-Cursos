@@ -17,7 +17,7 @@ import { dashboardApi, type DashboardData } from '../../api/dashboard.api';
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const { myCourses, hasAccess, getAccessType, loading: accessLoading } = useAccess();
+  const { myCourses } = useAccess();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 

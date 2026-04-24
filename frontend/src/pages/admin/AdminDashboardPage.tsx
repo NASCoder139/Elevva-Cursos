@@ -5,7 +5,7 @@ import {
   Clock, Calendar, Globe, Trophy, ChevronDown,
 } from 'lucide-react';
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
+  AreaChart, Area, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell,
 } from 'recharts';
 import { adminApi, type AdminStats } from '../../api/admin.api';
@@ -284,7 +284,7 @@ export default function AdminDashboardPage() {
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} width={40}
                   tickFormatter={(v) => `$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`}
                 />
-                <Tooltip {...tooltipStyle} formatter={(v: number) => [formatCurrency(v), 'Ingresos']} labelFormatter={(l) => formatDate(l)} />
+                <Tooltip {...tooltipStyle} formatter={(v: any) => [formatCurrency(Number(v)), 'Ingresos']} labelFormatter={(l) => formatDate(l as string)} />
                 <Area type="monotone" dataKey="revenue" stroke="#8b5cf6" strokeWidth={2} fill="url(#revGrad)"
                   dot={false} activeDot={{ r: 4, fill: '#a78bfa', strokeWidth: 0 }}
                 />
@@ -455,7 +455,7 @@ export default function AdminDashboardPage() {
                     </Pie>
                     <Tooltip
                       {...tooltipStyle}
-                      formatter={(v: number, _: any, entry: any) => [v, entry.payload.country]}
+                      formatter={(v: any, _: any, entry: any) => [v as number, entry.payload.country]}
                     />
                   </PieChart>
                 </ResponsiveContainer>

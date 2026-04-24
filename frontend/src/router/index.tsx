@@ -37,13 +37,6 @@ import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
 import AdminPlansPage from '../pages/admin/AdminPlansPage';
 import AdminDiscountsPage from '../pages/admin/AdminDiscountsPage';
 
-const Placeholder = ({ text }: { text: string }) => (
-  <div className="text-center py-20">
-    <p className="text-surface-500 dark:text-surface-400 text-lg">{text}</p>
-    <p className="text-surface-400 dark:text-surface-600 text-sm mt-2">Proximamente</p>
-  </div>
-);
-
 const router = createBrowserRouter([
   {
     element: <PublicLayout />,

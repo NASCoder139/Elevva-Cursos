@@ -5,8 +5,7 @@
 
 # Environment variables (NUNCA commitear)
 **/.env
-**/.env.local
-**/.env.*.local
+**/.env.*
 !**/.env.example
 
 # Credenciales y uploads

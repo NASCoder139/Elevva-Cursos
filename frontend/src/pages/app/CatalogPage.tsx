@@ -1,4 +1,4 @@
-import { useSearchParams, useParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useParams, Link } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import { Search, Star, Sparkles, Zap, Eye, CheckCircle2 } from 'lucide-react';
 import { useCategories } from '../../hooks/useCategories';
@@ -37,7 +37,6 @@ function DashboardStoreCard({
   owned: boolean;
   accessType: AccessType;
 }) {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const hasPrice = course.price !== null && course.price !== undefined && Number(course.price) > 0;
 
