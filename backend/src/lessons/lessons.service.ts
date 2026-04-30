@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LessonAccessService } from '../demo/lesson-access.service';
+import { BunnyService } from '../video/bunny.service';
 
 @Injectable()
 export class LessonsService {
   constructor(
     private prisma: PrismaService,
     private access: LessonAccessService,
+    private bunny: BunnyService,
   ) {}
 
   async findById(lessonId: string, userId: string) {
@@ -41,6 +43,8 @@ export class LessonsService {
 
     const access = await this.access.checkLessonAccess(userId, lessonId);
 
+    const bunnyEmbedUrl = lesson.bunnyVideoId ? this.bunny.getEmbedUrl(lesson.bunnyVideoId) : null;
+
     return {
       ...lesson,
       module: {
@@ -53,6 +57,7 @@ export class LessonsService {
       progress: progress || { watchedSeconds: 0, isCompleted: false },
       hasAccess: access.allowed,
       accessReason: access.reason,
+      bunnyEmbedUrl,
     };
   }
 }

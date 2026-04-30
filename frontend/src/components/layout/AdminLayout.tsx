@@ -2,7 +2,7 @@ import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import {
   Shield, LayoutDashboard, BookOpen, Folder, Users, CreditCard, Settings,
-  LogOut, Menu, ArrowLeft, Tag, Ticket,
+  LogOut, Menu, ArrowLeft, Tag, Ticket, Receipt,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ThemeToggle } from '../ui/ThemeToggle';
@@ -16,6 +16,7 @@ const navItems = [
   { to: '/admin/discounts', icon: Ticket, label: 'Descuentos' },
   { to: '/admin/users', icon: Users, label: 'Usuarios' },
   { to: '/admin/payments', icon: CreditCard, label: 'Pagos' },
+  { to: '/admin/taxes', icon: Receipt, label: 'Impuestos' },
   { to: '/admin/settings', icon: Settings, label: 'Ajustes' },
 ];
 

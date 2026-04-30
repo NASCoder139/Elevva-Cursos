@@ -14,7 +14,6 @@ import {
   Play,
   Lock,
   BookOpen,
-  Award,
   BarChart3,
   FileText,
   Download,
@@ -154,6 +153,34 @@ export default function CourseDetailPage() {
     if (next) setSelectedLessonId(next.id);
   };
 
+  const currentLessonIdx = useMemo(
+    () => (selectedLessonId ? allLessons.findIndex((l) => l.id === selectedLessonId) : -1),
+    [selectedLessonId, allLessons],
+  );
+  const prevLesson = currentLessonIdx > 0 ? allLessons[currentLessonIdx - 1] : null;
+  const nextLesson =
+    currentLessonIdx >= 0 && currentLessonIdx < allLessons.length - 1
+      ? allLessons[currentLessonIdx + 1]
+      : null;
+
+  const handleNextLesson = async () => {
+    if (!selectedLessonId || !nextLesson) return;
+    if (lessonDetail?.hasAccess && !completed[selectedLessonId]) {
+      const lessonId = selectedLessonId;
+      setCompleted((prev) => ({ ...prev, [lessonId]: true }));
+      try {
+        await progressApi.complete(lessonId);
+      } catch {
+        setCompleted((prev) => ({ ...prev, [lessonId]: false }));
+      }
+    }
+    handleSelectLesson(nextLesson.id);
+  };
+
+  const handlePrevLesson = () => {
+    if (prevLesson) handleSelectLesson(prevLesson.id);
+  };
+
   const handleBuyCourse = async () => {
     if (!course || buyLoading) return;
     setBuyLoading(true);
@@ -232,8 +259,8 @@ export default function CourseDetailPage() {
     return (
       <div className="px-4 py-12 text-center">
         <p className="mb-4 text-surface-600 dark:text-surface-400">{error || 'Curso no encontrado'}</p>
-        <Button href="/catalog" variant="outline">
-          Volver al catálogo
+        <Button href="/my-courses" variant="outline">
+          Volver a mis cursos
         </Button>
       </div>
     );
@@ -244,10 +271,10 @@ export default function CourseDetailPage() {
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       <Link
-        to="/catalog"
+        to="/my-courses"
         className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
       >
-        <ArrowLeft className="h-4 w-4" /> Volver al catálogo
+        <ArrowLeft className="h-4 w-4" /> Volver a mis cursos
       </Link>
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_400px] min-w-0">
@@ -262,6 +289,7 @@ export default function CourseDetailPage() {
               ) : lessonDetail?.hasAccess ? (
                 <VideoPlayer
                   lessonId={selectedLessonId}
+                  bunnyEmbedUrl={lessonDetail.bunnyEmbedUrl}
                   startAt={lessonDetail.progress.watchedSeconds || 0}
                   onEnded={handleLessonEnded}
                   onCompleted={() =>
@@ -273,17 +301,35 @@ export default function CourseDetailPage() {
                   <LockedLessonGate />
                 </div>
               )}
-              <div className="flex items-center justify-between gap-3 bg-surface-900 px-4 py-3 text-white">
+              <div className="flex flex-col gap-3 bg-surface-900 px-4 py-3 text-white sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-surface-400">Reproduciendo</p>
+                  <p className="text-xs text-surface-400">
+                    Reproduciendo {currentLessonIdx >= 0 && `· ${currentLessonIdx + 1} / ${allLessons.length}`}
+                  </p>
                   <p className="truncate text-sm font-medium">{lessonDetail?.title || '…'}</p>
                 </div>
-                <button
-                  onClick={() => setSelectedLessonId(null)}
-                  className="text-xs text-surface-400 hover:text-white"
-                >
-                  Cerrar
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePrevLesson}
+                    disabled={!prevLesson}
+                    className="inline-flex items-center gap-1 rounded-lg border border-surface-700 px-3 py-1.5 text-xs font-medium text-surface-200 transition hover:bg-surface-800 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    ← Anterior
+                  </button>
+                  <button
+                    onClick={handleNextLesson}
+                    disabled={!nextLesson}
+                    className="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Siguiente →
+                  </button>
+                  <button
+                    onClick={() => setSelectedLessonId(null)}
+                    className="ml-1 text-xs text-surface-400 hover:text-white"
+                  >
+                    Cerrar
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
@@ -345,12 +391,6 @@ export default function CourseDetailPage() {
                 <BarChart3 className="h-3.5 w-3.5" /> Progreso
               </div>
               <div className="font-semibold text-surface-900 dark:text-white text-sm sm:text-base break-words">{stats.percent}%</div>
-            </div>
-            <div className="rounded-xl border border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 p-3 sm:p-4 min-w-0">
-              <div className="flex items-center gap-2 text-surface-500 text-xs mb-1">
-                <Award className="h-3.5 w-3.5" /> Certificado
-              </div>
-              <div className="font-semibold text-surface-900 dark:text-white text-sm sm:text-base break-words">Al completar</div>
             </div>
           </div>
 

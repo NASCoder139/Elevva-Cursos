@@ -3,11 +3,13 @@ import toast from 'react-hot-toast';
 import { Check, Sparkles, Tag } from 'lucide-react';
 import { paymentsApi, plansApi, couponsApi, type PaymentProvider, type PublicPlan, type ValidatedCoupon } from '../../api/payments.api';
 import { useSubscription } from '../../hooks/useSubscription';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
 import { ProviderPicker } from '../../components/payments/ProviderPicker';
 import { PriceTag } from '../../components/ui/PriceTag';
 import { hasDiscount } from '../../lib/formatters';
+import { isChile } from '../../lib/countries';
 
 const planMeta: Record<string, { tagline: string; highlight: boolean }> = {
   SUBSCRIPTION_MONTHLY: { tagline: 'por mes', highlight: false },
@@ -23,6 +25,7 @@ function planKeyFromType(t: PublicPlan['key']): 'MONTHLY' | 'ANNUAL' {
 }
 
 export default function PricingPage() {
+  const { user } = useAuth();
   const { subscription, loading, refresh } = useSubscription();
   const [plans, setPlans] = useState<PublicPlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
@@ -73,6 +76,17 @@ export default function PricingPage() {
   const removeCoupon = () => {
     setCouponCode('');
     setCouponByPlan({});
+  };
+
+  const handleClickSubscribe = (plan: PublicPlan) => {
+    if (!user?.country) {
+      // Sin país → abrir picker para que el usuario lo elija
+      setPickerPlan(plan);
+      return;
+    }
+    // Con país → directo al checkout. El backend determina el provider final.
+    const provider: PaymentProvider = isChile(user.country) ? 'MERCADOPAGO' : 'PAYPAL';
+    handleSubscribe(plan, provider);
   };
 
   const handleSubscribe = async (plan: PublicPlan, provider: PaymentProvider) => {
@@ -229,7 +243,7 @@ export default function PricingPage() {
               <Button
                 fullWidth
                 variant={meta.highlight ? 'primary' : 'outline'}
-                onClick={() => setPickerPlan(p)}
+                onClick={() => handleClickSubscribe(p)}
                 isLoading={processing === p.id}
                 disabled={subscription?.isActive && !subscription?.isCancelled}
               >

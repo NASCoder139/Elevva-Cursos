@@ -33,7 +33,10 @@ export default function AdminPaymentsPage() {
     { key: 'id', header: 'ID', render: (p) => <span className="font-mono text-xs">{p.id.slice(0, 8)}…</span> },
     { key: 'user', header: 'Usuario', render: (p) => <div><div className="font-medium">{p.user?.firstName} {p.user?.lastName}</div><div className="text-xs text-surface-500">{p.user?.email}</div></div> },
     { key: 'type', header: 'Tipo', render: (p) => p.type },
-    { key: 'amount', header: 'Monto', render: (p) => `$${Number(p.amount).toLocaleString('es-AR')} ${p.currency}` },
+    { key: 'amount', header: 'Monto', render: (p) => {
+      const usd = Number(p.amountUSD ?? p.amount);
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(usd);
+    } },
     { key: 'status', header: 'Estado', render: (p) => <Badge variant={statusVariant[p.status] || 'default'}>{p.status}</Badge> },
     { key: 'date', header: 'Fecha', render: (p) => new Date(p.createdAt).toLocaleString('es-AR') },
   ];

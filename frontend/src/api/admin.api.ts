@@ -91,7 +91,17 @@ export const adminApi = {
     updatePlansPromo: (data: { plansPromoEnabled?: boolean; plansPromoEndsAt?: string | null }) =>
       api.patch<{ data: AdminSiteSettings }>('/admin/plans-promo', data),
   },
+  taxes: {
+    get: () => api.get<{ data: AdminTaxesSettings }>('/admin/taxes'),
+    update: (data: Partial<AdminTaxesSettings>) =>
+      api.patch<{ data: AdminTaxesSettings }>('/admin/taxes', data),
+  },
 };
+
+export interface AdminTaxesSettings {
+  taxRatePercent: number;
+  usdToClp: number;
+}
 
 export interface AdminSiteSettings {
   id: string;

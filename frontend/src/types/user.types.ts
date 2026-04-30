@@ -8,6 +8,7 @@ export interface Interest {
 export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
+  country?: string;
 }
 
 export interface ChangePasswordRequest {

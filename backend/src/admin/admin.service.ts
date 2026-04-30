@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SiteSettingsService } from '../site-settings/site-settings.service';
 import { CreateCourseDto, UpdateCourseDto } from './dto/course.dto';
 import { CreateModuleDto, UpdateModuleDto } from './dto/module.dto';
 import { CreateLessonDto, UpdateLessonDto } from './dto/lesson.dto';
@@ -8,12 +9,23 @@ import { UpdateUserDto } from './dto/user.dto';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private siteSettings: SiteSettingsService) {}
+
+  /** Normaliza un monto a USD según su moneda. CLP usa el TC actual del admin. */
+  private toUSD(amount: number | string | null | undefined, currency: string | null | undefined, usdToClp: number): number {
+    const n = Number(amount ?? 0);
+    if (!isFinite(n) || n === 0) return 0;
+    if ((currency ?? 'USD').toUpperCase() === 'CLP') return n / usdToClp;
+    return n;
+  }
 
   // ─── Stats ───────────────────────────────────────────────────────────────
   async getStats(days = 30) {
     const dateFrom = new Date();
     dateFrom.setDate(dateFrom.getDate() - days);
+
+    // TC para normalizar todos los montos a USD (algunos pagos vienen en CLP).
+    const { usdToClp } = await this.siteSettings.getTaxes();
 
     const [
       totalUsers,
@@ -22,8 +34,8 @@ export class AdminService {
       totalLessons,
       activeSubs,
       approvedPayments,
-      revenueAgg,
-      recentPayments,
+      approvedRange,
+      recentPaymentsRaw,
       recentUsers,
     ] = await Promise.all([
       this.prisma.user.count(),
@@ -32,7 +44,10 @@ export class AdminService {
       this.prisma.lesson.count(),
       this.prisma.subscription.count({ where: { status: 'ACTIVE' } }),
       this.prisma.payment.count({ where: { status: 'APPROVED', createdAt: { gte: dateFrom } } }),
-      this.prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'APPROVED', createdAt: { gte: dateFrom } } }),
+      this.prisma.payment.findMany({
+        where: { status: 'APPROVED', createdAt: { gte: dateFrom } },
+        select: { amount: true, currency: true, provider: true, createdAt: true },
+      }),
       this.prisma.payment.findMany({
         orderBy: { createdAt: 'desc' },
         take: 10,
@@ -45,34 +60,46 @@ export class AdminService {
       }),
     ]);
 
-    // Revenue chart by day
-    const paymentsByDay = await this.prisma.payment.findMany({
-      where: { status: 'APPROVED', createdAt: { gte: dateFrom } },
-      select: { amount: true, createdAt: true },
-    });
+    // Revenue total normalizado a USD
+    const revenueUSD = approvedRange.reduce(
+      (acc, p) => acc + this.toUSD(p.amount as any, p.currency, usdToClp),
+      0,
+    );
 
+    // Revenue chart by day (en USD)
     const revenueByDay: Record<string, number> = {};
     for (let i = 0; i < days; i++) {
       const d = new Date();
       d.setDate(d.getDate() - (days - 1 - i));
       revenueByDay[d.toISOString().slice(0, 10)] = 0;
     }
-    for (const p of paymentsByDay) {
+    for (const p of approvedRange) {
       const key = p.createdAt.toISOString().slice(0, 10);
-      revenueByDay[key] = (revenueByDay[key] || 0) + Number(p.amount);
+      revenueByDay[key] = (revenueByDay[key] || 0) + this.toUSD(p.amount as any, p.currency, usdToClp);
     }
     const chart = Object.entries(revenueByDay)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, revenue]) => ({ date, revenue }));
+      .map(([date, revenue]) => ({ date, revenue: Math.round(revenue * 100) / 100 }));
 
-    // Payments by provider (within date range)
-    const [mpTotal, ppTotal, totalPayments, pendingPayments, rejectedPayments] = await Promise.all([
-      this.prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'APPROVED', provider: 'MERCADOPAGO', createdAt: { gte: dateFrom } } }),
-      this.prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'APPROVED', provider: 'PAYPAL', createdAt: { gte: dateFrom } } }),
+    // Payments by provider — sumamos en USD desde el array ya cargado
+    const mpRevenueUSD = approvedRange
+      .filter((p) => p.provider === 'MERCADOPAGO')
+      .reduce((acc, p) => acc + this.toUSD(p.amount as any, p.currency, usdToClp), 0);
+    const ppRevenueUSD = approvedRange
+      .filter((p) => p.provider === 'PAYPAL')
+      .reduce((acc, p) => acc + this.toUSD(p.amount as any, p.currency, usdToClp), 0);
+
+    const [totalPayments, pendingPayments, rejectedPayments] = await Promise.all([
       this.prisma.payment.count({ where: { createdAt: { gte: dateFrom } } }),
       this.prisma.payment.count({ where: { status: 'PENDING', createdAt: { gte: dateFrom } } }),
       this.prisma.payment.count({ where: { status: 'REJECTED', createdAt: { gte: dateFrom } } }),
     ]);
+
+    // Pagos recientes con amountUSD calculado para mostrar uniforme en el dashboard
+    const recentPayments = recentPaymentsRaw.map((p) => ({
+      ...p,
+      amountUSD: Math.round(this.toUSD(p.amount as any, p.currency, usdToClp) * 100) / 100,
+    }));
 
     // Users last 7 days
     const sevenDaysAgo = new Date();
@@ -107,7 +134,7 @@ export class AdminService {
       where: { courseId: { not: null }, createdAt: { gte: dateFrom } },
       select: {
         courseId: true,
-        payment: { select: { amount: true, status: true } },
+        payment: { select: { amount: true, currency: true, status: true } },
       },
     });
     const courseMap: Record<string, { enrollments: number; revenue: number }> = {};
@@ -116,7 +143,7 @@ export class AdminService {
       if (!courseMap[p.courseId]) courseMap[p.courseId] = { enrollments: 0, revenue: 0 };
       courseMap[p.courseId].enrollments++;
       if (p.payment.status === 'APPROVED') {
-        courseMap[p.courseId].revenue += Number(p.payment.amount);
+        courseMap[p.courseId].revenue += this.toUSD(p.payment.amount as any, p.payment.currency, usdToClp);
       }
     }
     // Also count subscriptions as enrollments via lesson progress
@@ -168,12 +195,13 @@ export class AdminService {
         lessons: totalLessons,
         activeSubs,
         approvedPayments,
-        revenue: Number(revenueAgg._sum.amount || 0),
+        revenue: Math.round(revenueUSD * 100) / 100,
       },
+      currency: 'USD' as const,
       chart,
       paymentsByProvider: {
-        mercadopago: Number(mpTotal._sum.amount || 0),
-        paypal: Number(ppTotal._sum.amount || 0),
+        mercadopago: Math.round(mpRevenueUSD * 100) / 100,
+        paypal: Math.round(ppRevenueUSD * 100) / 100,
       },
       paymentStats: {
         total: totalPayments,
@@ -439,7 +467,8 @@ export class AdminService {
 
   // ─── Payments ────────────────────────────────────────────────────────────
   async listPayments(status?: string) {
-    return this.prisma.payment.findMany({
+    const { usdToClp } = await this.siteSettings.getTaxes();
+    const items = await this.prisma.payment.findMany({
       where: status ? { status: status as any } : undefined,
       orderBy: { createdAt: 'desc' },
       take: 200,
@@ -448,6 +477,10 @@ export class AdminService {
         purchase: { include: { course: { select: { title: true } }, category: { select: { name: true } } } },
       },
     });
+    return items.map((p) => ({
+      ...p,
+      amountUSD: Math.round(this.toUSD(p.amount as any, p.currency, usdToClp) * 100) / 100,
+    }));
   }
 
   // ─── Interests & Tags ────────────────────────────────────────────────────

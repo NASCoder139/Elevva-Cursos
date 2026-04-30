@@ -86,6 +86,7 @@ model User {
   subscription Subscription?
   payments     Payment[]
   purchases    Purchase[]
+  testimonial  Testimonial?
 
   @@map("users")
 }
@@ -253,6 +254,7 @@ model Lesson {
   durationSeconds Int     @default(0)
   sortOrder       Int     @default(0)
   driveFileId     String
+  bunnyVideoId    String?
   isFreePreview   Boolean @default(false)
   moduleId        String
 
@@ -451,7 +453,28 @@ model SiteSettings {
   promoRibbonCtaText       String? @default("Ver planes")
   promoRibbonCtaUrl        String? @default("/#pricing")
 
+  // Impuestos (Chile)
+  taxRatePercent Decimal @default(19) @db.Decimal(5, 2)
+  usdToClp       Decimal @default(950) @db.Decimal(10, 2)
+
   updatedAt DateTime @updatedAt
 
   @@map("site_settings")
+}
+
+// ─── Testimonial ─────────────────────────────────────────────────────────────
+
+model Testimonial {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content    String
+  rating     Int      @default(5)
+  isApproved Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isApproved, createdAt])
+  @@map("testimonials")
 }

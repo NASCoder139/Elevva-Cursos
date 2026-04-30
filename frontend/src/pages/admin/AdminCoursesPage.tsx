@@ -185,7 +185,7 @@ export default function AdminCoursesPage() {
             </p>
             <p>
               <span className="font-semibold text-surface-800 dark:text-surface-200">Dashboard alumnos (Visible / Oculto):</span>{' '}
-              Controla si el curso aparece en el catálogo del dashboard de alumnos logueados (<code>/app/catalog</code> y <code>/shop</code>). En <em>Oculto</em> el curso sigue disponible en la tienda pública y los alumnos que ya lo compraron siguen viéndolo en "Mis cursos".
+              Controla si el curso aparece en la tienda del dashboard de alumnos logueados (<code>/shop</code>). En <em>Oculto</em> el curso sigue disponible en la tienda pública y los alumnos que ya lo compraron siguen viéndolo en "Mis cursos".
             </p>
           </div>
         )}

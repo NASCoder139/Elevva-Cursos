@@ -8,6 +8,14 @@ import { SubscribeDto, CheckoutDto } from './dto/subscribe.dto';
 export class PaymentsController {
   constructor(private payments: PaymentsService) {}
 
+  @Public()
+  @Get('exchange-rate')
+  async exchangeRate() {
+    const usdToClp = await this.payments.getUsdToClp();
+    const taxRate = await this.payments.getTaxRate();
+    return { usdToClp, taxRatePercent: taxRate };
+  }
+
   @Post('checkout/course/:id')
   checkoutCourse(
     @CurrentUser('id') userId: string,

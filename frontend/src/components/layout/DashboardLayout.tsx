@@ -1,7 +1,7 @@
 import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import {
-  TrendingUp, LayoutDashboard, BookOpen, Heart, Users, HelpCircle,
+  TrendingUp, LayoutDashboard, Heart, Users, HelpCircle,
   CreditCard, User, LogOut, Menu, ChevronDown, ShoppingCart, Crown, FileText,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,7 +15,6 @@ import clsx from 'clsx';
 
 const mainNav = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/catalog', icon: BookOpen, label: 'Catálogo' },
   { to: '/my-courses', icon: FileText, label: 'Mis cursos' },
   { to: '/favorites', icon: Heart, label: 'Favoritos' },
   { to: '/community', icon: Users, label: 'Comunidad' },

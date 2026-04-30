@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "site_settings" ADD COLUMN     "taxRatePercent" DECIMAL(5,2) NOT NULL DEFAULT 19,
+ADD COLUMN     "usdToClp" DECIMAL(10,2) NOT NULL DEFAULT 950;
+

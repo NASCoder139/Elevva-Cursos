@@ -9,6 +9,7 @@ import {
 import { plansApi, type PublicPlan } from '../../api/payments.api';
 import { settingsApi, type PlansPromoPublic } from '../../api/settings.api';
 import { coursesApi } from '../../api/courses.api';
+import { testimonialsApi, type Testimonial } from '../../api/testimonials.api';
 import type { Course } from '../../types/course.types';
 
 /* ═══════════════════════════════════════════════════════
@@ -85,11 +86,35 @@ const steps = [
   { n: '04', title: 'Obtén resultados', desc: 'Completa cursos, obtén certificados y aplica tus nuevas habilidades.' },
 ];
 
-const testimonials = [
-  { name: 'Laura Méndez', role: 'Diseñadora UX · Santiago', quote: 'Los cursos son increíblemente prácticos. A la semana ya estaba aplicando lo que aprendí en proyectos reales.', avatar: 'LM' },
-  { name: 'Carlos Rivera', role: 'Full Stack Dev · CDMX', quote: 'La calidad del contenido es de otro nivel. El dashboard de progreso me motiva a no dejar ningún curso a medias.', avatar: 'CR' },
-  { name: 'Sofía García', role: 'Marketing · Buenos Aires', quote: 'Probé la demo de 30 minutos y me suscribí al instante. La comunidad hace toda la diferencia.', avatar: 'SG' },
-  { name: 'Andrés Castillo', role: 'Product Manager · Bogotá', quote: 'Estudiar en Elevva se siente como tener un mentor personal. Los certificados me abrieron puertas.', avatar: 'AC' },
+const fallbackTestimonials: Testimonial[] = [
+  {
+    id: 'fb-1',
+    content: 'Los cursos son increíblemente prácticos. A la semana ya estaba aplicando lo que aprendí en proyectos reales.',
+    rating: 5,
+    createdAt: new Date().toISOString(),
+    author: { firstName: 'Laura', lastName: 'Méndez', country: 'Chile', avatarUrl: null },
+  },
+  {
+    id: 'fb-2',
+    content: 'La calidad del contenido es de otro nivel. El dashboard de progreso me motiva a seguir todos los días.',
+    rating: 5,
+    createdAt: new Date().toISOString(),
+    author: { firstName: 'Carlos', lastName: 'Rivera', country: 'México', avatarUrl: null },
+  },
+  {
+    id: 'fb-3',
+    content: 'Probé la demo y me suscribí al instante. La variedad de cursos y la comunidad hacen toda la diferencia.',
+    rating: 5,
+    createdAt: new Date().toISOString(),
+    author: { firstName: 'Sofía', lastName: 'García', country: 'Argentina', avatarUrl: null },
+  },
+  {
+    id: 'fb-4',
+    content: 'Aprender en Elevva se siente como tener un mentor personal a tu lado todos los días.',
+    rating: 5,
+    createdAt: new Date().toISOString(),
+    author: { firstName: 'Andrés', lastName: 'Castillo', country: 'Colombia', avatarUrl: null },
+  },
 ];
 
 const planUI: Record<string, { period: string; highlight: boolean; ribbon?: string; badgeColor: string }> = {
@@ -344,7 +369,7 @@ export function LandingPage() {
               <FadeUp>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 dark:bg-primary-500/8 border border-primary-500/20 dark:border-primary-500/15 text-primary-600 dark:text-primary-300 text-xs font-medium mb-8 hover:bg-primary-500/15 dark:hover:bg-primary-500/12 hover:border-primary-400/30 dark:hover:border-primary-400/25 transition-all duration-300">
                   <Sparkles className="h-3.5 w-3.5 animate-pulse" />
-                  Plataforma #1 en educación online
+                  +100 cursos online disponibles · Nuevos cada semana
                 </div>
               </FadeUp>
 
@@ -409,7 +434,7 @@ export function LandingPage() {
                 {[
                   { icon: GraduationCap, value: '100+', label: 'Cursos premium' },
                   { icon: Play, value: '500+', label: 'Lecciones en video' },
-                  { icon: Users, value: '10K+', label: 'Estudiantes activos' },
+                  { icon: Users, value: '230K+', label: 'Emprendedores activos' },
                   { icon: Star, value: '4.9/5', label: 'Calificación promedio', stars: true },
                 ].map((item) => (
                   <div key={item.label} className="group flex items-center gap-3 cursor-default">
@@ -553,7 +578,7 @@ export function LandingPage() {
                         { label: 'Completadas', value: '24', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
                         { label: 'En progreso', value: '3', icon: LineChart, color: 'text-blue-400', bg: 'bg-blue-500/10' },
                         { label: 'Minutos', value: '186', icon: Clock, color: 'text-violet-400', bg: 'bg-violet-500/10' },
-                        { label: 'Certificados', value: '5', icon: Trophy, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+                        { label: 'Favoritos', value: '12', icon: Trophy, color: 'text-amber-400', bg: 'bg-amber-500/10' },
                       ].map((s) => (
                         <div key={s.label} className="rounded-xl bg-surface-800/40 border border-surface-800/50 p-2.5 text-center group-hover:bg-surface-800/60 transition-all duration-300">
                           <div className={`w-6 h-6 rounded-lg ${s.bg} flex items-center justify-center mx-auto mb-1.5`}>
@@ -595,9 +620,9 @@ export function LandingPage() {
                     {/* Course progress */}
                     <div className="space-y-2.5">
                       {[
-                        { title: 'React Avanzado', progress: 78, color: 'bg-blue-500' },
-                        { title: 'Node.js + NestJS', progress: 45, color: 'bg-emerald-500' },
-                        { title: 'UI/UX Design', progress: 92, color: 'bg-violet-500' },
+                        { title: 'ADS - Anuncios', progress: 78, color: 'bg-blue-500' },
+                        { title: 'Ecommerce - Dropshipping', progress: 45, color: 'bg-emerald-500' },
+                        { title: 'Growth Partner', progress: 92, color: 'bg-violet-500' },
                       ].map((c) => (
                         <div key={c.title} className="flex items-center gap-3 rounded-lg bg-surface-800/20 px-3 py-2 border border-surface-800/30 hover:bg-surface-800/40 transition-all duration-300">
                           <div className="flex-1 min-w-0">
@@ -640,7 +665,7 @@ export function LandingPage() {
                     { icon: Target, text: 'Porcentaje de progreso por cada curso' },
                     { icon: Flame, text: 'Racha de estudio y minutos dedicados' },
                     { icon: LineChart, text: 'Continúa exactamente donde lo dejaste' },
-                    { icon: Trophy, text: 'Certificados al completar cada curso' },
+                    { icon: Trophy, text: 'Acceso de por vida a los cursos que adquieras' },
                   ].map((item) => (
                     <li key={item.text} className="flex items-center gap-3 group/item cursor-default">
                       <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-surface-100 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-800/60 flex items-center justify-center group-hover/item:bg-primary-500/10 group-hover/item:border-primary-500/20 transition-all duration-300">
@@ -726,45 +751,7 @@ export function LandingPage() {
       </section>
 
       {/* ═══════ TESTIMONIOS ═══════ */}
-      <section className="relative py-28">
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-surface-50/50 to-white dark:from-surface-950 dark:via-surface-900/20 dark:to-surface-950" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeUp>
-            <div className="text-center mb-16">
-              <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-500/8 border border-amber-500/20 dark:border-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-semibold uppercase tracking-wider mb-4">
-                Testimonios
-              </span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
-                Lo que dicen nuestros{' '}
-                <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">estudiantes</span>
-              </h2>
-            </div>
-          </FadeUp>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {testimonials.map((t, i) => (
-              <FadeUp key={t.name} delay={i * 60}>
-                <div className="group relative rounded-2xl border border-surface-200 dark:border-surface-800/50 bg-white dark:bg-surface-900/30 p-6 backdrop-blur-sm hover:border-amber-300 dark:hover:border-amber-500/15 hover:bg-surface-50 dark:hover:bg-surface-800/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/5 shadow-sm dark:shadow-none transition-all duration-500 cursor-default h-full flex flex-col">
-                  <Quote className="h-7 w-7 text-surface-200 dark:text-surface-800/60 group-hover:text-primary-200 dark:group-hover:text-primary-500/20 transition-colors duration-500 mb-3" />
-                  <div className="flex gap-0.5 mb-3">
-                    {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />)}
-                  </div>
-                  <p className="text-sm text-surface-500 dark:text-surface-400 leading-relaxed mb-5 flex-1 group-hover:text-surface-700 dark:group-hover:text-surface-300 transition-colors">"{t.quote}"</p>
-                  <div className="flex items-center gap-3 pt-4 border-t border-surface-200 dark:border-surface-800/40">
-                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary-500 to-violet-500 flex items-center justify-center text-white text-[11px] font-bold group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary-500/20 transition-all duration-300">
-                      {t.avatar}
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-surface-900 dark:text-white">{t.name}</div>
-                      <div className="text-[10px] text-surface-500">{t.role}</div>
-                    </div>
-                  </div>
-                </div>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TestimonialsCarousel />
 
       {/* ═══════ PLANES ═══════ */}
       <PricingSection plans={plans} promo={plansPromo} />
@@ -929,6 +916,99 @@ function PricingSection({ plans, promo }: { plans: PublicPlan[]; promo: PlansPro
               );
             })
           )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   TESTIMONIALS CAROUSEL (autoplay infinito en loop, sin scrollbar)
+   ═══════════════════════════════════════════════════════ */
+function TestimonialCard({ t }: { t: Testimonial }) {
+  return (
+    <article className="shrink-0 w-72 sm:w-80 lg:w-96 rounded-2xl border border-surface-200 dark:border-surface-800/50 bg-white dark:bg-surface-900/50 p-6 backdrop-blur-sm shadow-sm dark:shadow-none flex flex-col">
+      <Quote className="h-7 w-7 text-surface-200 dark:text-surface-800/60 mb-3" />
+      <div className="flex gap-0.5 mb-3">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <Star
+            key={s}
+            className={`h-3.5 w-3.5 ${
+              s <= t.rating ? 'fill-amber-400 text-amber-400' : 'text-surface-300 dark:text-surface-700'
+            }`}
+          />
+        ))}
+      </div>
+      <p className="text-sm text-surface-600 dark:text-surface-300 leading-relaxed mb-5 flex-1">
+        "{t.content}"
+      </p>
+      <div className="flex items-center gap-3 pt-4 border-t border-surface-200 dark:border-surface-800/40">
+        <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary-500 to-violet-500 flex items-center justify-center text-white text-[11px] font-bold">
+          {t.author.firstName[0]}
+          {t.author.lastName[0]}
+        </div>
+        <div className="min-w-0">
+          <div className="text-xs font-semibold text-surface-900 dark:text-white truncate">
+            {t.author.firstName} {t.author.lastName}
+          </div>
+          {t.author.country && (
+            <div className="text-[10px] text-surface-500 truncate">{t.author.country}</div>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function TestimonialsCarousel() {
+  const [items, setItems] = useState<Testimonial[]>(fallbackTestimonials);
+
+  useEffect(() => {
+    testimonialsApi
+      .list()
+      .then((res) => {
+        const real = res.data.data;
+        if (real && real.length > 0) setItems(real);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Duplicamos la lista para crear el efecto de loop infinito sin saltos.
+  // La animación translateX(-50%) deja el inicio del segundo bloque exactamente
+  // donde estaba el inicio del primero, así el ciclo es invisible.
+  const loopItems = [...items, ...items];
+
+  return (
+    <section className="relative py-28 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-surface-50/50 to-white dark:from-surface-950 dark:via-surface-900/20 dark:to-surface-950" />
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <FadeUp>
+          <div className="text-center mb-12">
+            <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-500/8 border border-amber-500/20 dark:border-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-semibold uppercase tracking-wider mb-4">
+              Testimonios
+            </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
+              Lo que dicen nuestros{' '}
+              <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">alumnos</span>
+            </h2>
+          </div>
+        </FadeUp>
+
+        {/* Máscara con fade en los bordes */}
+        <div
+          className="relative overflow-hidden"
+          style={{
+            maskImage:
+              'linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%)',
+            WebkitMaskImage:
+              'linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%)',
+          }}
+        >
+          <div className="flex gap-4 animate-marquee-x">
+            {loopItems.map((t, i) => (
+              <TestimonialCard key={`${t.id}-${i}`} t={t} />
+            ))}
+          </div>
         </div>
       </div>
     </section>

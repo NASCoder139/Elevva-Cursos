@@ -38,7 +38,7 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
 
-    const country = await this.detectCountry(ip);
+    const country = dto.country?.trim() || (await this.detectCountry(ip));
 
     const user = await this.prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({

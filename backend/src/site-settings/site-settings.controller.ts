@@ -30,4 +30,10 @@ export class PublicSettingsController {
       endsAt: s.plansPromoEndsAt,
     };
   }
+
+  @Public()
+  @Get('taxes')
+  getTaxes() {
+    return this.settings.getTaxes();
+  }
 }

@@ -17,12 +17,9 @@ import AboutPage from '../pages/public/AboutPage';
 import { DashboardPage } from '../pages/app/DashboardPage';
 import { NotFoundPage } from '../pages/public/NotFoundPage';
 import InterestsPage from '../pages/app/InterestsPage';
-import CatalogPage from '../pages/app/CatalogPage';
-import DashboardStorePage from '../pages/app/DashboardStorePage';
 import MyCoursesPage from '../pages/app/MyCoursesPage';
 import CourseDetailPage from '../pages/app/CourseDetailPage';
 import ProfilePage from '../pages/app/ProfilePage';
-import LessonPlayerPage from '../pages/app/LessonPlayerPage';
 import FavoritesPage from '../pages/app/FavoritesPage';
 import PricingPage from '../pages/app/PricingPage';
 import PaymentResultPage from '../pages/app/PaymentResultPage';
@@ -36,6 +33,7 @@ import AdminPaymentsPage from '../pages/admin/AdminPaymentsPage';
 import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
 import AdminPlansPage from '../pages/admin/AdminPlansPage';
 import AdminDiscountsPage from '../pages/admin/AdminDiscountsPage';
+import AdminTaxesPage from '../pages/admin/AdminTaxesPage';
 
 const router = createBrowserRouter([
   {
@@ -73,10 +71,8 @@ const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
           { path: '/dashboard', element: <DashboardPage /> },
-          { path: '/catalog', element: <CatalogPage /> },
-          { path: '/catalog/:categorySlug', element: <CatalogPage /> },
           { path: '/my-courses', element: <MyCoursesPage /> },
-          { path: '/shop', element: <DashboardStorePage /> },
+          { path: '/shop', element: <PublicStorePage /> },
           { path: '/course/:courseSlug', element: <CourseDetailPage /> },
           { path: '/favorites', element: <FavoritesPage /> },
           { path: '/profile', element: <ProfilePage /> },
@@ -86,10 +82,6 @@ const router = createBrowserRouter([
           { path: '/interests', element: <InterestsPage /> },
           { path: '/payment/result', element: <PaymentResultPage /> },
         ],
-      },
-      {
-        path: '/course/:courseSlug/learn/:lessonId',
-        element: <LessonPlayerPage />,
       },
     ],
   },
@@ -107,6 +99,7 @@ const router = createBrowserRouter([
           { path: '/admin/discounts', element: <AdminDiscountsPage /> },
           { path: '/admin/users', element: <AdminUsersPage /> },
           { path: '/admin/payments', element: <AdminPaymentsPage /> },
+          { path: '/admin/taxes', element: <AdminTaxesPage /> },
           { path: '/admin/settings', element: <AdminSettingsPage /> },
         ],
       },

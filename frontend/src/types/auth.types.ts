@@ -4,6 +4,7 @@ export interface User {
   firstName: string;
   lastName: string;
   avatarUrl: string | null;
+  country: string | null;
   role: 'USER' | 'ADMIN';
   isEmailVerified: boolean;
   createdAt: string;
@@ -19,6 +20,7 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
+  country?: string;
 }
 
 export interface AuthResponse {

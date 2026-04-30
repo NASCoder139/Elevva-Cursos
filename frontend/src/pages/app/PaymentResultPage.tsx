@@ -100,7 +100,7 @@ export default function PaymentResultPage() {
         </p>
         <div className="flex justify-center gap-3">
           <Button href="/dashboard">Ir al dashboard</Button>
-          <Link to="/catalog" className="text-sm text-primary-600 hover:underline self-center">Ver cursos</Link>
+          <Link to="/my-courses" className="text-sm text-primary-600 hover:underline self-center">Mis cursos</Link>
         </div>
       </div>
     );

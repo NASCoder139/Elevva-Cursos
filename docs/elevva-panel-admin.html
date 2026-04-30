@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Elevva — Guía del Panel de Administrador</title>
+<style>
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #e0e7ff;
+    --bg: #ffffff;
+    --text: #1f2937;
+    --text-soft: #4b5563;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --bg-soft: #f9fafb;
+    --bg-card: #ffffff;
+    --accent: #fef3c7;
+    --accent-border: #f59e0b;
+    --success: #d1fae5;
+    --success-border: #10b981;
+    --warning: #fee2e2;
+    --warning-border: #ef4444;
+    --info: #dbeafe;
+    --info-border: #3b82f6;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.65;
+    margin: 0;
+    padding: 40px 60px;
+    max-width: 980px;
+    margin: 0 auto;
+    font-size: 14px;
+  }
+
+  h1 {
+    color: var(--primary-dark);
+    font-size: 30px;
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 12px;
+    margin-top: 0;
+  }
+
+  h2 {
+    color: var(--primary-dark);
+    font-size: 22px;
+    margin-top: 50px;
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 8px;
+  }
+
+  h3 {
+    color: var(--text);
+    font-size: 17px;
+    margin-top: 28px;
+    border-left: 4px solid var(--primary);
+    padding-left: 10px;
+  }
+
+  h4 {
+    color: var(--text);
+    font-size: 15px;
+    margin-top: 20px;
+    margin-bottom: 8px;
+  }
+
+  p { margin: 10px 0; }
+
+  code {
+    background: var(--bg-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 13px;
+    color: #be185d;
+    border: 1px solid var(--border);
+  }
+
+  pre {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  pre code {
+    background: none;
+    border: none;
+    color: var(--text);
+    padding: 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  th {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+  }
+
+  tr:nth-child(even) { background: var(--bg-soft); }
+
+  .callout {
+    border-left: 4px solid var(--accent-border);
+    background: var(--accent);
+    padding: 14px 18px;
+    margin: 18px 0;
+    border-radius: 4px;
+  }
+
+  .callout.warn {
+    border-left-color: var(--warning-border);
+    background: var(--warning);
+  }
+
+  .callout.ok {
+    border-left-color: var(--success-border);
+    background: var(--success);
+  }
+
+  .callout.info {
+    border-left-color: var(--info-border);
+    background: var(--info);
+  }
+
+  .callout strong { display: inline-block; margin-right: 4px; }
+
+  ul, ol { padding-left: 24px; }
+  li { margin: 6px 0; }
+
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .header .subtitle {
+    color: var(--text-soft);
+    font-size: 14px;
+    margin-top: -10px;
+  }
+
+  .toc {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 28px;
+    margin: 30px 0;
+  }
+
+  .toc h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    border: none;
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .toc ol { margin: 0; padding-left: 22px; }
+  .toc li { margin: 4px 0; font-size: 14px; }
+  .toc a { color: var(--primary-dark); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .badge.green { background: #d1fae5; color: #047857; }
+  .badge.gray { background: #e5e7eb; color: #4b5563; }
+  .badge.amber { background: #fef3c7; color: #92400e; }
+  .badge.violet { background: #ede9fe; color: #6b21a8; }
+  .badge.red { background: #fee2e2; color: #991b1b; }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+
+  .feature-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .feature-card h4 {
+    margin: 0 0 6px 0;
+    color: var(--primary-dark);
+  }
+
+  .feature-card p { margin: 0; font-size: 13px; color: var(--text-soft); }
+
+  .section-icon {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    background: var(--primary);
+    color: white;
+    border-radius: 6px;
+    text-align: center;
+    line-height: 28px;
+    font-weight: bold;
+    margin-right: 8px;
+    font-size: 14px;
+  }
+
+  .footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-soft);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .step-list {
+    counter-reset: step-counter;
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .step-list li {
+    counter-increment: step-counter;
+    padding-left: 40px;
+    position: relative;
+    margin: 12px 0;
+  }
+
+  .step-list li::before {
+    content: counter(step-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 28px;
+    font-weight: bold;
+    font-size: 13px;
+  }
+
+  @media print {
+    body { padding: 20px; }
+    h2 { page-break-after: avoid; }
+    h3 { page-break-after: avoid; }
+    pre, table, .callout, .feature-card { page-break-inside: avoid; }
+    .toc a { text-decoration: none; color: var(--text); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Elevva — Guía del Panel de Administrador</h1>
+  <p class="subtitle">Manual completo de todas las funciones disponibles para administrar tu plataforma de cursos</p>
+</div>
+
+<div class="toc">
+  <h2>📋 Contenido</h2>
+  <ol>
+    <li><a href="#acceso">Cómo acceder al panel</a></li>
+    <li><a href="#dashboard">Dashboard — Estadísticas e ingresos</a></li>
+    <li><a href="#cursos">Cursos — Gestión completa</a></li>
+    <li><a href="#editar-curso">Edición de un curso</a></li>
+    <li><a href="#categorias">Categorías</a></li>
+    <li><a href="#planes">Planes y precios</a></li>
+    <li><a href="#descuentos">Códigos de descuento (cupones)</a></li>
+    <li><a href="#usuarios">Usuarios</a></li>
+    <li><a href="#pagos">Pagos</a></li>
+    <li><a href="#ajustes">Ajustes — Intereses y Tags</a></li>
+    <li><a href="#flujos">Flujos comunes paso a paso</a></li>
+  </ol>
+</div>
+
+<!-- ─────────────────────────── 1 ─────────────────────────── -->
+<h2 id="acceso"><span class="section-icon">1</span>Cómo acceder al panel</h2>
+
+<ol class="step-list">
+  <li>Entra a <code>https://elevva-cursos.pages.dev</code></li>
+  <li>Haz click en <strong>"Iniciar sesión"</strong></li>
+  <li>Usa las credenciales de admin:
+    <ul>
+      <li>Email: <code>admin@miaccess.com</code></li>
+      <li>Contraseña: <code>Admin123!</code></li>
+    </ul>
+  </li>
+  <li>Una vez dentro, en la barra lateral verás un acceso a <strong>"Admin Panel"</strong>, o ve directo a <code>/admin</code></li>
+</ol>
+
+<div class="callout warn">
+  <strong>⚠️ Recomendación:</strong> cambia la contraseña por defecto de inmediato desde tu perfil para que tu cuenta admin sea segura.
+</div>
+
+<h3>Estructura del menú lateral</h3>
+<p>El sidebar del panel tiene 8 secciones principales (más el botón "Volver a la app" y "Cerrar sesión"):</p>
+
+<div class="feature-grid">
+  <div class="feature-card"><h4>📊 Dashboard</h4><p>Métricas clave, gráficos de ingresos y pagos recientes.</p></div>
+  <div class="feature-card"><h4>📚 Cursos</h4><p>Crear, editar, publicar/ocultar cursos.</p></div>
+  <div class="feature-card"><h4>📁 Categorías</h4><p>Agrupar cursos y asignarles precios.</p></div>
+  <div class="feature-card"><h4>🏷️ Planes y precios</h4><p>Planes de suscripción + cinta promo.</p></div>
+  <div class="feature-card"><h4>🎟️ Descuentos</h4><p>Cupones con porcentaje o monto fijo.</p></div>
+  <div class="feature-card"><h4>👥 Usuarios</h4><p>Lista de alumnos, sus pagos y accesos.</p></div>
+  <div class="feature-card"><h4>💳 Pagos</h4><p>Historial de transacciones.</p></div>
+  <div class="feature-card"><h4>⚙️ Ajustes</h4><p>Intereses (categorías personales) y Tags.</p></div>
+</div>
+
+<!-- ─────────────────────────── 2 ─────────────────────────── -->
+<h2 id="dashboard"><span class="section-icon">2</span>Dashboard — Estadísticas e ingresos</h2>
+
+<p>La pantalla principal del panel admin. Aquí ves la salud de tu negocio de un vistazo.</p>
+
+<h3>📊 Tarjetas KPI (parte superior)</h3>
+<table>
+  <thead>
+    <tr><th>Tarjeta</th><th>Qué muestra</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>👥 <strong>Usuarios totales</strong></td><td>Cantidad total de cuentas registradas (incluye admins).</td></tr>
+    <tr><td>📚 <strong>Cursos publicados</strong></td><td>Cursos con estado "Publicado" (visibles al público).</td></tr>
+    <tr><td>▶️ <strong>Lecciones</strong></td><td>Total de videos/lecciones cargadas en toda la plataforma.</td></tr>
+    <tr><td>💳 <strong>Pagos aprobados</strong></td><td>Transacciones exitosas (suma de ventas + suscripciones).</td></tr>
+    <tr><td>💰 <strong>Ingresos totales</strong></td><td>Suma en USD de todos los pagos aprobados.</td></tr>
+    <tr><td>✨ <strong>Suscriptores activos</strong></td><td>Usuarios con plan mensual o anual vigente.</td></tr>
+  </tbody>
+</table>
+
+<h3>📈 Gráfico de ingresos en el tiempo</h3>
+<p>Muestra los ingresos por día/semana/mes. Puedes cambiar el rango con un selector arriba a la derecha del gráfico:</p>
+<ul>
+  <li><strong>Hoy</strong> — solo el día actual</li>
+  <li><strong>7 días</strong> — última semana</li>
+  <li><strong>30 días</strong> — último mes (por defecto)</li>
+  <li><strong>90 días</strong> — últimos 3 meses</li>
+  <li><strong>Todo</strong> — desde que abriste la plataforma</li>
+</ul>
+
+<h3>🥧 Gráficos de torta (pie charts)</h3>
+<ul>
+  <li><strong>Pagos por método:</strong> distribución entre MercadoPago y PayPal.</li>
+  <li><strong>Pagos por tipo:</strong> qué venden más — suscripciones mensuales, anuales, cursos individuales o categorías.</li>
+</ul>
+
+<h3>🌎 Top países</h3>
+<p>Ranking de países donde están tus alumnos (con banderas). Útil para saber a qué mercado dirigir promociones.</p>
+
+<h3>📋 Lista de pagos recientes</h3>
+<p>Los últimos 10 pagos con: usuario, monto, método (PayPal/MercadoPago), tipo, estado y fecha.</p>
+
+<div class="callout info">
+  <strong>💡 Tip:</strong> El dashboard se actualiza en tiempo real cada vez que entras. Si compartes la pantalla con socios, refresca para ver datos al minuto.
+</div>
+
+<!-- ─────────────────────────── 3 ─────────────────────────── -->
+<h2 id="cursos"><span class="section-icon">3</span>Cursos — Gestión completa</h2>
+
+<p>Aquí gestionas los cursos: creación, edición, publicación y eliminación.</p>
+
+<h3>Botón "Nuevo curso"</h3>
+<p>Abre un formulario para crear un curso desde cero. Campos requeridos:</p>
+<ul>
+  <li><strong>Título</strong> — nombre visible al alumno (ej: <em>"Marketing con IA"</em>)</li>
+  <li><strong>Slug</strong> — identificador URL-friendly (ej: <em>marketing-con-ia</em>)</li>
+  <li><strong>Categoría</strong> — selecciona de las existentes</li>
+  <li><strong>Descripción</strong> — texto largo descriptivo</li>
+</ul>
+<p>Campos opcionales:</p>
+<ul>
+  <li><strong>Precio</strong> (USD) — déjalo vacío si está incluido en algún plan</li>
+  <li><strong>Precio anterior tachado</strong> — muestra descuento visualmente</li>
+</ul>
+
+<h3>Tabla de cursos — columnas explicadas</h3>
+<table>
+  <thead>
+    <tr><th>Columna</th><th>Significado</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Título</strong></td><td>Nombre del curso + slug debajo (en gris)</td></tr>
+    <tr><td><strong>Categoría</strong></td><td>A qué categoría pertenece</td></tr>
+    <tr><td><strong>Módulos</strong></td><td>Cantidad de módulos (capítulos)</td></tr>
+    <tr><td><strong>Lecciones</strong></td><td>Cantidad de videos totales</td></tr>
+    <tr><td><strong>Precio</strong></td><td>USD si tiene precio individual, "Incluido" si va con plan</td></tr>
+    <tr><td><strong>Estado</strong></td><td><span class="badge green">Publicado</span> o <span class="badge gray">Borrador</span> (click para alternar)</td></tr>
+    <tr><td><strong>Dashboard alumnos</strong></td><td><span class="badge green">Visible</span> u <span class="badge gray">Oculto</span></td></tr>
+  </tbody>
+</table>
+
+<h3>⭐ La diferencia entre "Publicado" y "Visible"</h3>
+
+<div class="callout">
+  <p><strong>Publicado / Borrador:</strong> controla si el curso existe en TODO el sitio. En <em>Borrador</em> NO aparece en ningún lado (ni tienda pública, ni dashboard, ni siquiera para alumnos que ya lo compraron).</p>
+  <p><strong>Visible / Oculto:</strong> controla si aparece en el catálogo del dashboard de alumnos logueados (<code>/catalog</code> y <code>/shop</code>). En <em>Oculto</em>, el curso sigue en la tienda pública y los alumnos que ya lo compraron lo siguen viendo en "Mis cursos".</p>
+</div>
+
+<p><strong>Casos de uso:</strong></p>
+<ul>
+  <li>🚧 <strong>Curso en construcción:</strong> Borrador (no visible para nadie)</li>
+  <li>🛒 <strong>Solo para venta directa:</strong> Publicado + Oculto (lo ven en tienda pero no aparece en dashboard de alumnos con plan)</li>
+  <li>✅ <strong>Curso normal:</strong> Publicado + Visible</li>
+  <li>🗃️ <strong>Curso retirado pero respetando compras:</strong> Publicado + Oculto (no se vende más en dashboard pero quien lo compró lo conserva)</li>
+</ul>
+
+<h3>🔍 Búsqueda</h3>
+<p>Hay un buscador arriba de la tabla. Escribe parte del título y presiona Enter o el botón "Buscar".</p>
+
+<h3>🗑️ Eliminar curso</h3>
+<p>El icono rojo de papelera elimina el curso, sus módulos y todas sus lecciones (con confirmación). <strong>Acción irreversible.</strong></p>
+
+<!-- ─────────────────────────── 4 ─────────────────────────── -->
+<h2 id="editar-curso"><span class="section-icon">4</span>Edición de un curso</h2>
+
+<p>Al hacer click en el lápiz de un curso, entras al editor con dos pestañas:</p>
+
+<h3>Pestaña "Información"</h3>
+<p>Edita los datos generales del curso:</p>
+<ul>
+  <li><strong>Título</strong> y <strong>Slug</strong></li>
+  <li><strong>Categoría</strong> (cambiarla mueve el curso de sección)</li>
+  <li><strong>Precio</strong> y <strong>Precio anterior tachado</strong> (USD)</li>
+  <li><strong>Thumbnail URL</strong> — imagen de portada (puede ser link externo de Unsplash u otra URL)</li>
+  <li><strong>Descripción corta</strong> — texto que aparece en las tarjetas del catálogo</li>
+  <li><strong>Descripción</strong> — texto largo que aparece en la página del curso</li>
+</ul>
+
+<p>Y tres checkboxes de control:</p>
+<ul>
+  <li>☑️ <strong>Publicado</strong> — visible en todo el sitio</li>
+  <li>⭐ <strong>Destacado</strong> — aparece en la sección de destacados de la home</li>
+  <li>👁️ <strong>Visible en dashboard de alumnos</strong> — aparece en el catálogo logueado</li>
+</ul>
+
+<h3>Pestaña "Módulos y lecciones"</h3>
+<p>Aquí gestionas la estructura interna del curso (capítulos y videos).</p>
+
+<h4>Crear módulo</h4>
+<p>Botón <strong>"Nuevo módulo"</strong> → te pide el título por prompt. Los módulos son como capítulos del curso.</p>
+
+<h4>Crear lección dentro de un módulo</h4>
+<p>Click en <strong>"+ Agregar lección"</strong>. Te pedirá:</p>
+<ol>
+  <li><strong>Título de la lección</strong> — ej: "Introducción al SEO"</li>
+  <li><strong>Google Drive File ID</strong> — el ID del archivo de video en tu Drive (la parte larga después de <code>/d/</code> en la URL del video en Drive)</li>
+  <li><strong>Duración en segundos</strong> — opcional pero útil</li>
+</ol>
+
+<div class="callout info">
+  <strong>💡 Cómo obtener un Drive File ID:</strong> abre el video en Drive → URL completa → copia lo que está entre <code>/d/</code> y <code>/view</code>. Ejemplo: en <code>drive.google.com/file/d/1Q7forVeQ9rFRDwfAvGx7zyBNIVeKb1pn/view</code>, el ID es <code>1Q7forVeQ9rFRDwfAvGx7zyBNIVeKb1pn</code>.
+</div>
+
+<h4>Marcar como "Preview gratis"</h4>
+<p>El botón "Preview" en cada lección permite que esa lección puntual sea visible para alumnos sin pago (como demo del curso). Útil para que los visitantes prueben antes de comprar.</p>
+
+<h4>Editar / Renombrar / Eliminar</h4>
+<p>Cada módulo y cada lección tienen botones para editar/eliminar. Eliminar un módulo borra TODAS sus lecciones (con confirmación).</p>
+
+<!-- ─────────────────────────── 5 ─────────────────────────── -->
+<h2 id="categorias"><span class="section-icon">5</span>Categorías</h2>
+
+<p>Las categorías agrupan cursos por temática (ej: "Marketing Digital", "Crypto", "Inglés"). También pueden tener su propio precio si las vendes como "pack de categoría".</p>
+
+<h3>Crear categoría</h3>
+<p>Botón <strong>"Nueva"</strong>. Campos:</p>
+<ul>
+  <li><strong>Nombre</strong> — visible al alumno</li>
+  <li><strong>Slug</strong> — para la URL (ej: <code>/store/marketing-digital</code>)</li>
+  <li><strong>Precio</strong> (opcional) — USD para vender la categoría completa</li>
+  <li><strong>Descripción</strong></li>
+</ul>
+
+<h3>Editar categoría</h3>
+<p>Click en "Editar" abre prompts secuenciales para modificar nombre, slug, precio y precio anterior tachado.</p>
+
+<h3>Activar / Desactivar</h3>
+<p>El badge verde "Activa" / gris "Inactiva" se puede alternar con click. Una categoría inactiva no aparece en el catálogo público.</p>
+
+<div class="callout">
+  <strong>📌 Modelo de negocio sugerido:</strong> puedes vender de 3 formas:
+  <ul style="margin: 6px 0;">
+    <li>Curso individual (precio en el curso)</li>
+    <li>Categoría completa (precio en la categoría — incluye todos sus cursos)</li>
+    <li>Plan de suscripción (acceso a TODO)</li>
+  </ul>
+</div>
+
+<!-- ─────────────────────────── 6 ─────────────────────────── -->
+<h2 id="planes"><span class="section-icon">6</span>Planes y precios</h2>
+
+<p>Sección con 3 sub-paneles muy potentes para configurar tu monetización.</p>
+
+<h3>📦 Sub-panel 1: Planes de suscripción</h3>
+<p>Por defecto tienes 2 planes (Mensual y Anual). Para cada uno puedes configurar:</p>
+
+<table>
+  <thead>
+    <tr><th>Campo</th><th>Para qué sirve</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Label</strong></td><td>Nombre que ven los usuarios (ej: "Plan Mensual")</td></tr>
+    <tr><td><strong>Precio</strong></td><td>USD que cobras</td></tr>
+    <tr><td><strong>Precio anterior tachado</strong></td><td>Genera el efecto "antes $X, ahora $Y"</td></tr>
+    <tr><td><strong>Badge</strong></td><td>Etiqueta tipo "Más popular", "Recomendado"</td></tr>
+    <tr><td><strong>Savings</strong></td><td>Texto del ahorro (ej: "Ahorra 40%")</td></tr>
+    <tr><td><strong>Features</strong></td><td>Lista de beneficios (cada bullet del plan)</td></tr>
+    <tr><td><strong>Activo</strong></td><td>Si está visible en la página de planes</td></tr>
+  </tbody>
+</table>
+
+<p>Si se eliminaron los planes y necesitas recrearlos, hay un botón "Seed defaults" que genera los 2 planes por defecto.</p>
+
+<h3>🔥 Sub-panel 2: Modo oferta global</h3>
+<p>Activa una promoción de planes con cuenta regresiva visible en toda la web:</p>
+<ul>
+  <li>☑️ <strong>Activar promo</strong></li>
+  <li>📅 <strong>Fecha y hora de fin</strong> — al llegar, la promo termina automáticamente</li>
+</ul>
+<p>Cuando está activa, los planes muestran un cronómetro en vivo y se enfatiza visualmente. Al expirar, vuelve todo al estilo normal.</p>
+
+<h3>📢 Sub-panel 3: Cinta promocional del sitio (banner)</h3>
+<p>Una barra que aparece arriba del header en TODA la web pública (login no requerido). Útil para anunciar promociones, eventos o avisos.</p>
+
+<table>
+  <thead>
+    <tr><th>Campo</th><th>Función</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Activado</strong></td><td>On/Off del banner</td></tr>
+    <tr><td><strong>Texto principal</strong></td><td>Ej: "BLACK FRIDAY - 50% OFF"</td></tr>
+    <tr><td><strong>Texto secundario</strong></td><td>Subtexto opcional</td></tr>
+    <tr><td><strong>Mostrar countdown</strong></td><td>Suma un contador regresivo (usa la misma fecha del modo promo)</td></tr>
+    <tr><td><strong>Texto del CTA</strong></td><td>Botón a la derecha (ej: "Ver planes")</td></tr>
+    <tr><td><strong>URL del CTA</strong></td><td>A dónde lleva el botón (ej: <code>/#pricing</code>)</td></tr>
+  </tbody>
+</table>
+
+<!-- ─────────────────────────── 7 ─────────────────────────── -->
+<h2 id="descuentos"><span class="section-icon">7</span>Códigos de descuento (cupones)</h2>
+
+<p>Crea cupones que tus usuarios pueden ingresar al checkout para obtener descuento.</p>
+
+<h3>Botón "Nuevo cupón"</h3>
+<p>Abre formulario con todos los parámetros:</p>
+
+<table>
+  <thead>
+    <tr><th>Campo</th><th>Detalle</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Código</strong></td><td>Lo que escribirá el alumno (ej: <code>VERANO2026</code>). Se guarda en mayúsculas.</td></tr>
+    <tr><td><strong>Aplica a</strong></td><td>Todo / Solo cursos / Solo categorías / Solo planes</td></tr>
+    <tr><td><strong>Tipo de descuento</strong></td><td>Porcentaje (1-100%) o Monto fijo (USD)</td></tr>
+    <tr><td><strong>Valor</strong></td><td>El número (ej: 20 = 20% si es PERCENT, o $20 si es FIXED)</td></tr>
+    <tr><td><strong>Válido desde</strong></td><td>Fecha desde la que el cupón empieza a funcionar (opcional)</td></tr>
+    <tr><td><strong>Válido hasta</strong></td><td>Fecha de vencimiento (opcional, sin esto = sin vencimiento)</td></tr>
+    <tr><td><strong>Límite de usos</strong></td><td>Cuántas veces se puede canjear (opcional, sin esto = ilimitado)</td></tr>
+    <tr><td><strong>Activo</strong></td><td>Switch on/off general</td></tr>
+    <tr><td><strong>Descripción</strong></td><td>Nota interna (no la ven los alumnos)</td></tr>
+  </tbody>
+</table>
+
+<h3>Tabla de cupones</h3>
+<p>Te muestra: código, descuento, alcance, usos (3 / 100 si tiene límite), vigencia, estado, y acciones (activar/desactivar, editar, eliminar).</p>
+
+<div class="callout info">
+  <strong>💡 Estrategias de cupones:</strong>
+  <ul style="margin: 6px 0;">
+    <li><strong>Lanzamiento:</strong> 30% durante 7 días, sin límite de usos</li>
+    <li><strong>Para influencers:</strong> 20% código personalizado con límite de 50 usos</li>
+    <li><strong>Win-back:</strong> 50% solo para suscripciones, válido por 48hs</li>
+    <li><strong>Black Friday:</strong> 60% durante 24h, código <code>BF2026</code></li>
+  </ul>
+</div>
+
+<!-- ─────────────────────────── 8 ─────────────────────────── -->
+<h2 id="usuarios"><span class="section-icon">8</span>Usuarios</h2>
+
+<p>Lista completa de cuentas registradas con detalle expandible por usuario.</p>
+
+<h3>Tabla principal — columnas</h3>
+<ul>
+  <li><strong>Nombre y email</strong></li>
+  <li><strong>Rol</strong> — alumno o admin</li>
+  <li><strong>Estado de suscripción</strong> — activo/cancelado/sin plan</li>
+  <li><strong>Tipo de plan</strong> — mensual/anual/individual</li>
+  <li><strong>País</strong></li>
+  <li><strong>Fecha de registro</strong></li>
+</ul>
+
+<h3>🔍 Buscador</h3>
+<p>Arriba hay un campo para filtrar por nombre o email. Búsqueda en tiempo real.</p>
+
+<h3>📋 Detalle del usuario (expandible)</h3>
+<p>Click en el row de un usuario para ver TODA su información:</p>
+<ul>
+  <li><strong>Datos personales:</strong> email, fecha de registro, último acceso, país</li>
+  <li><strong>Suscripción actual:</strong> tipo, estado, fechas inicio/renovación</li>
+  <li><strong>Historial de pagos:</strong> todos los pagos del usuario con monto, método (PayPal/MercadoPago), estado</li>
+  <li><strong>Cursos comprados:</strong> lista con fecha de compra</li>
+  <li><strong>Categorías compradas:</strong> packs adquiridos</li>
+  <li><strong>Intereses seleccionados:</strong> los que el usuario eligió en onboarding</li>
+</ul>
+
+<h3>🗑️ Eliminar usuario</h3>
+<p>Botón de papelera en cada row. <strong>Cuidado:</strong> elimina cuenta + suscripciones + pagos + favoritos. Acción irreversible.</p>
+
+<!-- ─────────────────────────── 9 ─────────────────────────── -->
+<h2 id="pagos"><span class="section-icon">9</span>Pagos</h2>
+
+<p>Historial completo de todas las transacciones de la plataforma.</p>
+
+<h3>Tabla de pagos</h3>
+<table>
+  <thead>
+    <tr><th>Columna</th><th>Detalle</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>ID</strong></td><td>UUID del pago (se muestra recortado)</td></tr>
+    <tr><td><strong>Usuario</strong></td><td>Nombre + email del comprador</td></tr>
+    <tr><td><strong>Tipo</strong></td><td>SUBSCRIPTION_MONTHLY / SUBSCRIPTION_ANNUAL / ONE_TIME_COURSE / ONE_TIME_CATEGORY</td></tr>
+    <tr><td><strong>Monto</strong></td><td>Cantidad + moneda (USD por defecto)</td></tr>
+    <tr><td><strong>Estado</strong></td><td><span class="badge green">APPROVED</span> <span class="badge amber">PENDING</span> <span class="badge red">REJECTED</span> <span class="badge gray">REFUNDED</span></td></tr>
+    <tr><td><strong>Fecha</strong></td><td>Fecha y hora de creación</td></tr>
+  </tbody>
+</table>
+
+<h3>Filtro por estado</h3>
+<p>Selector arriba: Todos / Aprobados / Pendientes / En proceso / Rechazados / Reembolsados.</p>
+
+<div class="callout">
+  <strong>📌 Estados explicados:</strong>
+  <ul style="margin: 6px 0;">
+    <li><strong>APPROVED:</strong> pago exitoso, dinero recibido</li>
+    <li><strong>PENDING:</strong> el usuario inició checkout pero no terminó</li>
+    <li><strong>IN_PROCESS:</strong> en validación del proveedor (PayPal/MP)</li>
+    <li><strong>REJECTED:</strong> falló (tarjeta rechazada, fondos insuficientes, etc)</li>
+    <li><strong>REFUNDED:</strong> devolución completada</li>
+  </ul>
+</div>
+
+<!-- ─────────────────────────── 10 ─────────────────────────── -->
+<h2 id="ajustes"><span class="section-icon">10</span>Ajustes — Intereses y Tags</h2>
+
+<p>Pantalla simple con 2 secciones para configurar metadatos de la plataforma.</p>
+
+<h3>🎯 Intereses</h3>
+<p>Categorías personales que los usuarios eligen al registrarse para personalizar su experiencia. Ejemplos: "Marketing", "Diseño", "Negocios". Para cada interés:</p>
+<ul>
+  <li><strong>Nombre</strong> — visible al usuario</li>
+  <li><strong>Slug</strong> — interno</li>
+  <li><strong>Icono</strong> (opcional) — un emoji o nombre de ícono</li>
+</ul>
+
+<h3>🏷️ Tags</h3>
+<p>Etiquetas para taggear cursos. Útil para filtros avanzados y SEO. Ejemplos: "principiante", "avanzado", "2026", "premium". Cada tag tiene:</p>
+<ul>
+  <li><strong>Nombre</strong></li>
+  <li><strong>Slug</strong></li>
+</ul>
+
+<div class="callout info">
+  <strong>💡 Diferencia clave:</strong>
+  <p>Una <strong>categoría</strong> es la sección donde vive el curso (un curso = una sola categoría). <strong>Tags</strong> son atributos múltiples (un curso puede tener varios tags). <strong>Intereses</strong> son del usuario, no del curso.</p>
+</div>
+
+<!-- ─────────────────────────── 11 ─────────────────────────── -->
+<h2 id="flujos"><span class="section-icon">11</span>Flujos comunes paso a paso</h2>
+
+<h3>🆕 Crear un curso completo desde cero</h3>
+<ol class="step-list">
+  <li>Ve a <strong>Categorías</strong> — verifica que existe la categoría adecuada (si no, créala).</li>
+  <li>Ve a <strong>Cursos</strong> → <strong>Nuevo</strong>. Llena título, slug, descripción, categoría. <strong>No publiques aún.</strong></li>
+  <li>Click en el ✏️ del curso → pestaña <strong>"Información"</strong>. Sube thumbnail URL, descripción corta, decide si va con plan (precio vacío) o tiene precio individual.</li>
+  <li>Pestaña <strong>"Módulos y lecciones"</strong> → <strong>"Nuevo módulo"</strong>. Crea uno (ej: "Introducción").</li>
+  <li>Dentro del módulo → <strong>"+ Agregar lección"</strong>. Pega el Drive File ID del video. Repite por cada video.</li>
+  <li>Cuando esté completo, vuelve a "Información" y marca <strong>Publicado</strong> + <strong>Visible</strong>.</li>
+  <li>(Opcional) Marca <strong>Destacado</strong> si quieres que aparezca en la home.</li>
+</ol>
+
+<h3>🎁 Lanzar una promoción de Black Friday</h3>
+<ol class="step-list">
+  <li>Ve a <strong>Planes y precios</strong>.</li>
+  <li>En <strong>Modo oferta global</strong> → activar y poner fecha de fin (ej: 30 noviembre 23:59).</li>
+  <li>Edita los planes: pone precio rebajado, <code>comparePrice</code> = precio normal, <code>savings</code> = "60% OFF".</li>
+  <li>Activa <strong>Cinta promocional del sitio</strong>: "BLACK FRIDAY hasta 60% OFF" + countdown ON + CTA "Ver planes" → <code>/#pricing</code>.</li>
+  <li>Ve a <strong>Descuentos</strong> → crea cupón <code>BF2026</code> con 60% para el alcance que quieras.</li>
+  <li>Listo. Cuando llegue la fecha de fin, todo se desactiva automáticamente.</li>
+</ol>
+
+<h3>📤 Publicar un curso solo para venta directa (no para suscriptores)</h3>
+<ol class="step-list">
+  <li>Edita el curso → ponle <strong>precio individual</strong> en USD.</li>
+  <li>Marca <strong>Publicado</strong>.</li>
+  <li><strong>Desmarca</strong> "Visible en dashboard de alumnos" (queda Oculto).</li>
+  <li>Resultado: aparece en la tienda pública (cualquiera lo compra), pero los alumnos con suscripción no lo ven en su catálogo.</li>
+</ol>
+
+<h3>🚫 Retirar un curso pero respetando compras existentes</h3>
+<ol class="step-list">
+  <li>Edita el curso → <strong>desmarca</strong> "Visible en dashboard de alumnos".</li>
+  <li>Mantén <strong>Publicado</strong> ON.</li>
+  <li>Listo: nuevos alumnos no lo ven, pero los que ya pagaron lo siguen viendo en "Mis cursos".</li>
+</ol>
+
+<h3>👤 Investigar un usuario que reclama un cobro</h3>
+<ol class="step-list">
+  <li>Ve a <strong>Usuarios</strong>.</li>
+  <li>Busca por email en el campo de búsqueda.</li>
+  <li>Click en su row → expande el detalle.</li>
+  <li>Revisa la sección "Historial de pagos": fecha, monto, estado, método.</li>
+  <li>Cruza con la sección <strong>Pagos</strong> filtrada por estado <code>REJECTED</code> si sospechas que falló.</li>
+</ol>
+
+<!-- ─────────────────────────── BONUS ─────────────────────────── -->
+<h2>🎓 Buenas prácticas</h2>
+
+<div class="callout ok">
+  <ul style="margin: 6px 0;">
+    <li><strong>Respaldo de slugs:</strong> nunca cambies un slug ya en producción — rompe URLs públicas y SEO.</li>
+    <li><strong>Pre-vista antes de publicar:</strong> deja el curso en Borrador, prueba el flujo desde una cuenta de alumno alterna, después publica.</li>
+    <li><strong>Cupones con fecha:</strong> siempre pon "válido hasta" para que tu landing no muestre cupones zombie.</li>
+    <li><strong>Featured con criterio:</strong> no pongas todos los cursos como "Destacado". Limita a 3-6 cursos top.</li>
+    <li><strong>Categorías no muy granulares:</strong> 5-15 categorías está bien. Más de 25 confunde al alumno.</li>
+    <li><strong>Imágenes de portada consistentes:</strong> usa siempre 16:9 o 4:3, mismo estilo. Mejora la percepción de marca.</li>
+  </ul>
+</div>
+
+<h2>🆘 Problemas frecuentes</h2>
+
+<table>
+  <thead>
+    <tr><th>Problema</th><th>Solución</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>"El curso no aparece en el catálogo"</td>
+      <td>Verifica que esté <strong>Publicado</strong> Y <strong>Visible</strong>. Y que la categoría esté <strong>Activa</strong>.</td>
+    </tr>
+    <tr>
+      <td>"El video no carga / da error"</td>
+      <td>Verifica que el Drive File ID sea correcto y que la cuenta de servicio tenga permiso de lectura sobre el archivo.</td>
+    </tr>
+    <tr>
+      <td>"Un alumno no ve un curso que compró"</td>
+      <td>Revisa en su detalle de usuario que el pago aparezca como <span class="badge green">APPROVED</span>. Si está PENDING, hay que confirmar manualmente desde la pasarela.</td>
+    </tr>
+    <tr>
+      <td>"El cupón no se aplica"</td>
+      <td>Verifica: estado Activo, dentro de fechas de vigencia, no superó límite de usos, y el alcance (scope) coincide con lo que está comprando el alumno.</td>
+    </tr>
+    <tr>
+      <td>"No puedo crear categoría con el mismo slug"</td>
+      <td>Los slugs son únicos. Si quieres reutilizar, primero elimina la categoría que lo tenía.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  <p>Elevva — Plataforma de cursos online · Panel de Administrador</p>
+  <p>Documento generado el 27 de abril, 2026</p>
+</div>
+
+</body>
+</html>

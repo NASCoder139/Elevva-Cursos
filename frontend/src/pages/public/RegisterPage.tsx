@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User, Clock, Lock as LockIcon } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Clock, Globe, Lock as LockIcon } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { getPasswordErrors } from '../../lib/validators';
+import { COUNTRIES } from '../../lib/countries';
+import { geoApi } from '../../api/geo.api';
 import toast from 'react-hot-toast';
 
 export function RegisterPage() {
@@ -14,11 +16,22 @@ export function RegisterPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [country, setCountry] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const passwordErrors = password ? getPasswordErrors(password) : [];
+
+  useEffect(() => {
+    geoApi
+      .detect()
+      .then((res) => {
+        const detected = res.data.data?.country;
+        if (detected && COUNTRIES.includes(detected as any)) setCountry(detected);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,9 +42,14 @@ export function RegisterPage() {
       return;
     }
 
+    if (!country) {
+      setError('Selecciona tu país');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await register(email, password, firstName, lastName);
+      await register(email, password, firstName, lastName, country);
       toast.success('Cuenta creada exitosamente!');
       navigate('/interests');
     } catch (err: any) {
@@ -101,6 +119,27 @@ export function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
+
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-surface-700 dark:text-surface-300">País</span>
+            <div className="relative">
+              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
+              <select
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                required
+                className="w-full rounded-lg border border-surface-300 bg-white pl-9 pr-3 py-2.5 text-sm dark:border-surface-700 dark:bg-surface-800"
+              >
+                <option value="">Selecciona tu país...</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <span className="mt-1 block text-xs text-surface-500">
+              Lo usamos para mostrarte el método de pago disponible (MercadoPago en Chile, PayPal en otros países).
+            </span>
+          </label>
 
           <div className="relative">
             <Input

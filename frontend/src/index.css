@@ -64,6 +64,29 @@
   cursor: none;
 }
 
+/* ─── Cursor visible en pantalla completa ─── */
+/* Cuando un elemento (video u otro) está en pantalla completa, el cursor custom
+   queda fuera del subárbol fullscreen y no se ve. Forzamos el cursor real del
+   navegador para que el usuario nunca pierda referencia. */
+:fullscreen,
+:fullscreen *,
+:-webkit-full-screen,
+:-webkit-full-screen *,
+:-moz-full-screen,
+:-moz-full-screen * {
+  cursor: auto !important;
+}
+
+video {
+  cursor: auto !important;
+}
+
+video::-webkit-media-controls,
+video::-webkit-media-controls-panel,
+video::-webkit-media-controls-enclosure {
+  cursor: auto !important;
+}
+
 /* ─── Glow text shimmer ─── */
 @keyframes shimmer {
   0% {
@@ -233,4 +256,30 @@
 .weekly-bar {
   height: 8%;
   animation: weeklyBarPulse 4.2s ease-in-out infinite;
+}
+
+/* ─── Marquee infinito (testimonios) ─── */
+@keyframes marqueeScrollX {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-x {
+  animation: marqueeScrollX 50s linear infinite;
+  width: max-content;
+}
+
+.animate-marquee-x:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-x {
+    animation: none;
+  }
 }

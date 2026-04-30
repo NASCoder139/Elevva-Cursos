@@ -21,6 +21,8 @@ import { AdminModule } from './admin/admin.module';
 import { MailModule } from './mail/mail.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { SiteSettingsModule } from './site-settings/site-settings.module';
+import { GeoModule } from './geo/geo.module';
+import { TestimonialsModule } from './testimonials/testimonials.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -49,6 +51,8 @@ import { RolesGuard } from './common/guards/roles.guard';
     AdminModule,
     UploadsModule,
     SiteSettingsModule,
+    GeoModule,
+    TestimonialsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

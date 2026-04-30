@@ -15,6 +15,11 @@ export interface UpdatePromoRibbonDto {
   promoRibbonCtaUrl?: string | null;
 }
 
+export interface UpdateTaxesDto {
+  taxRatePercent?: number;
+  usdToClp?: number;
+}
+
 const SINGLETON_ID = 'site-settings-singleton';
 
 @Injectable()
@@ -39,5 +44,21 @@ export class SiteSettingsService {
   async updatePromoRibbon(dto: UpdatePromoRibbonDto) {
     const current = await this.get();
     return this.prisma.siteSettings.update({ where: { id: current.id }, data: dto });
+  }
+
+  async updateTaxes(dto: UpdateTaxesDto) {
+    const current = await this.get();
+    const data: any = {};
+    if (dto.taxRatePercent != null) data.taxRatePercent = dto.taxRatePercent;
+    if (dto.usdToClp != null) data.usdToClp = dto.usdToClp;
+    return this.prisma.siteSettings.update({ where: { id: current.id }, data });
+  }
+
+  async getTaxes() {
+    const s = await this.get();
+    return {
+      taxRatePercent: Number(s.taxRatePercent ?? 19),
+      usdToClp: Number(s.usdToClp ?? 950),
+    };
   }
 }

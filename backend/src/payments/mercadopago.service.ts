@@ -49,6 +49,11 @@ export class MercadoPagoService {
       return { id: `mock-${Date.now()}`, init_point: `${body.successUrl}?mock=1&external_reference=${body.externalReference}` };
     }
     const isLocal = body.successUrl?.includes('localhost');
+    // CLP no admite decimales (los pesos chilenos no tienen centavos).
+    // Otras monedas como USD/ARS sí, pero por seguridad redondeamos siempre.
+    const unitPrice = this.currency === 'CLP'
+      ? Math.round(body.unitPrice)
+      : Math.round(body.unitPrice * 100) / 100;
     const res = await this.preference.create({
       body: {
         items: [
@@ -56,7 +61,7 @@ export class MercadoPagoService {
             id: body.externalReference,
             title: body.title,
             quantity: body.quantity || 1,
-            unit_price: body.unitPrice,
+            unit_price: unitPrice,
             currency_id: this.currency,
           },
         ],
@@ -93,6 +98,9 @@ export class MercadoPagoService {
       : body.backUrl;
     const testEmail = this.config.get<string>('MP_TEST_PAYER_EMAIL', 'admin@miaccess.com');
     const payerEmail = isLocal ? testEmail : body.payerEmail;
+    const txAmount = this.currency === 'CLP'
+      ? Math.round(body.amount)
+      : Math.round(body.amount * 100) / 100;
     const res = await this.preapproval.create({
       body: {
         reason: body.reason,
@@ -102,7 +110,7 @@ export class MercadoPagoService {
         auto_recurring: {
           frequency: body.frequency,
           frequency_type: body.frequencyType,
-          transaction_amount: body.amount,
+          transaction_amount: txAmount,
           currency_id: this.currency,
         },
         status: 'pending',

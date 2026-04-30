@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Elevva — Arquitectura y Despliegue</title>
+<style>
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --bg: #ffffff;
+    --text: #1f2937;
+    --text-soft: #4b5563;
+    --border: #e5e7eb;
+    --bg-soft: #f9fafb;
+    --accent: #fef3c7;
+    --accent-border: #f59e0b;
+    --success: #d1fae5;
+    --success-border: #10b981;
+    --warning: #fee2e2;
+    --warning-border: #ef4444;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.65;
+    margin: 0;
+    padding: 40px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+    font-size: 14px;
+  }
+
+  h1 {
+    color: var(--primary-dark);
+    font-size: 28px;
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 10px;
+    margin-top: 0;
+  }
+
+  h2 {
+    color: var(--primary-dark);
+    font-size: 20px;
+    margin-top: 40px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+  }
+
+  h3 {
+    color: var(--text);
+    font-size: 16px;
+    margin-top: 24px;
+  }
+
+  p { margin: 10px 0; }
+
+  code {
+    background: var(--bg-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 13px;
+    color: #be185d;
+    border: 1px solid var(--border);
+  }
+
+  pre {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  pre code {
+    background: none;
+    border: none;
+    color: var(--text);
+    padding: 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+  }
+
+  th {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+  }
+
+  tr:nth-child(even) { background: var(--bg-soft); }
+
+  .callout {
+    border-left: 4px solid var(--accent-border);
+    background: var(--accent);
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: 4px;
+  }
+
+  .callout.warn {
+    border-left-color: var(--warning-border);
+    background: var(--warning);
+  }
+
+  .callout.ok {
+    border-left-color: var(--success-border);
+    background: var(--success);
+  }
+
+  ul, ol { padding-left: 24px; }
+  li { margin: 6px 0; }
+
+  .header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .header .subtitle {
+    color: var(--text-soft);
+    font-size: 14px;
+    margin-top: -10px;
+  }
+
+  .footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-soft);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  @media print {
+    body { padding: 20px; }
+    h2 { page-break-after: avoid; }
+    pre, table, .callout { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Elevva — Arquitectura y Despliegue</h1>
+  <p class="subtitle">Guía completa: cómo está montada tu plataforma de cursos online</p>
+</div>
+
+<h2>1. La arquitectura: 3 servicios separados</h2>
+
+<p>Tu plataforma <strong>no vive en un solo lugar</strong>. Está dividida en 3 piezas que viven en proveedores distintos y se comunican entre sí:</p>
+
+<pre><code>   Usuario (navegador)
+         │
+         ▼
+   ┌──────────────────────┐
+   │  CLOUDFLARE PAGES    │  ← Frontend (React)
+   │  elevva-cursos       │     HTML/CSS/JS estático
+   │  .pages.dev          │
+   └──────────┬───────────┘
+              │ peticiones /api/...
+              ▼
+   ┌──────────────────────┐
+   │       RENDER         │  ← Backend (NestJS)
+   │  elevva-cursos       │     Lógica, autenticación, pagos
+   │  -render.onrender    │
+   │  .com                │
+   └──────────┬───────────┘
+              │ consultas SQL
+              ▼
+   ┌──────────────────────┐
+   │        NEON          │  ← Base de datos (PostgreSQL)
+   │  ep-noisy-shape...   │     Usuarios, cursos, lecciones
+   └──────────────────────┘</code></pre>
+
+<h2>2. Qué hace cada servicio</h2>
+
+<h3>Cloudflare Pages — donde vive el frontend</h3>
+<ul>
+  <li>Hosting de archivos estáticos con <strong>CDN global</strong> (tu sitio carga rápido en cualquier país).</li>
+  <li><strong>Qué hace:</strong> sirve los archivos <code>.html</code>, <code>.css</code>, <code>.js</code> que <code>vite build</code> generó.</li>
+  <li><strong>No ejecuta lógica de servidor.</strong> Es solo una página que se descarga al navegador y ahí corre React.</li>
+  <li><strong>Cómo se actualiza:</strong> cada <code>git push</code> a la rama <code>main</code> dispara un build automático.</li>
+</ul>
+
+<h3>Render — donde vive el backend</h3>
+<ul>
+  <li>Es un PaaS (Platform as a Service): le das código Node.js, él lo ejecuta como servidor 24/7.</li>
+  <li><strong>Qué hace:</strong> corre tu API NestJS. Recibe peticiones HTTP (<code>/api/auth/login</code>, <code>/api/courses</code>, etc), las procesa, consulta la base de datos, y devuelve JSON.</li>
+  <li><strong>Cómo se actualiza:</strong> igual, cada <code>git push</code> lo redeploya automáticamente.</li>
+</ul>
+
+<h3>Neon — donde vive la base de datos</h3>
+<ul>
+  <li><strong>PostgreSQL "serverless":</strong> una base de datos en la nube que no tienes que administrar.</li>
+  <li><strong>Qué hace:</strong> guarda toda tu data persistente — usuarios, cursos, lecciones, pagos, etc.</li>
+  <li>Tu backend de Render se conecta a ella mediante el <code>DATABASE_URL</code>.</li>
+</ul>
+
+<h2>3. Las variables de entorno</h2>
+
+<p>Las "env vars" son configuración que cambia entre desarrollo (tu PC) y producción (la nube). El <strong>código es el mismo</strong>, pero las URLs/secretos cambian.</p>
+
+<h3>En Render (backend)</h3>
+<table>
+  <thead>
+    <tr><th>Variable</th><th>Para qué sirve</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>DATABASE_URL</code></td><td>Cómo conectarse a Neon (incluye usuario, contraseña, host)</td></tr>
+    <tr><td><code>JWT_SECRET</code></td><td>Llave secreta para firmar tokens de sesión de usuarios</td></tr>
+    <tr><td><code>JWT_REFRESH_SECRET</code></td><td>Llave secreta para los refresh tokens</td></tr>
+    <tr><td><code>BACKEND_URL</code></td><td>Su propia URL pública (para construir links en emails, callbacks de pago)</td></tr>
+    <tr><td><code>FRONTEND_URL</code></td><td>URL del frontend → <strong>CORS</strong> la usa para permitir peticiones solo desde ahí</td></tr>
+    <tr><td><code>MP_ACCESS_TOKEN</code> / <code>PAYPAL_CLIENT_ID</code></td><td>Credenciales de las pasarelas de pago</td></tr>
+  </tbody>
+</table>
+
+<h3>En Cloudflare Pages (frontend)</h3>
+<table>
+  <thead>
+    <tr><th>Variable</th><th>Para qué sirve</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>VITE_API_URL</code></td><td>A qué URL pegarle cuando React quiera datos. Apunta al backend de Render + <code>/api</code></td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <strong>⚠️ Detalle clave:</strong> las variables que empiezan con <code>VITE_</code> se <strong>embeben en el JavaScript del navegador</strong> durante el build. Si las cambias, hay que <strong>redesplegar</strong> — porque están dentro del archivo <code>.js</code> ya generado, no se leen en tiempo real.
+</div>
+
+<h3>Por qué las URLs van "cruzadas"</h3>
+
+<pre><code>Frontend  →  apunta a  →  Backend   (VITE_API_URL = URL de Render)
+Backend   →  apunta a  →  Frontend  (FRONTEND_URL  = URL de Cloudflare, para CORS)
+Backend   →  apunta a  →  DB        (DATABASE_URL  = URL de Neon)</code></pre>
+
+<p>Cada servicio necesita saber la dirección del <strong>otro</strong> porque viven separados.</p>
+
+<h2>4. CORS — por qué tantos problemas con las URLs</h2>
+
+<p>CORS (<em>Cross-Origin Resource Sharing</em>) es una protección del navegador. Por defecto, JavaScript solo puede llamar APIs en el <strong>mismo dominio</strong> donde corre.</p>
+
+<p>Como tu frontend (<code>elevva-cursos.pages.dev</code>) y backend (<code>elevva-cursos-render.onrender.com</code>) están en dominios distintos, el navegador bloquea las peticiones <strong>a menos que</strong> el backend diga explícitamente "permito peticiones desde tal origen".</p>
+
+<p>Por eso en <code>main.ts</code> del backend tienes:</p>
+
+<pre><code>app.enableCors({ origin: FRONTEND_URL, credentials: true })</code></pre>
+
+<p>Y por eso fue crítico que <code>FRONTEND_URL</code> <strong>no tuviera barra final</strong> (<code>/</code>) — la comparación es literal.</p>
+
+<h2>5. Limitaciones del plan gratis</h2>
+
+<h3>Cloudflare Pages — el más generoso</h3>
+<div class="callout ok">
+  <ul style="margin: 0;">
+    <li>✅ Ancho de banda <strong>ilimitado</strong></li>
+    <li>✅ 500 builds al mes</li>
+    <li>✅ Sin "spin down" — siempre disponible al instante</li>
+    <li>⚠️ Solo archivos estáticos (no puedes correr Node.js aquí)</li>
+  </ul>
+</div>
+
+<h3>Render Free — el cuello de botella</h3>
+<div class="callout warn">
+  <ul style="margin: 0;">
+    <li>⚠️ <strong>Spin down tras 15 min sin tráfico:</strong> el servidor se "duerme". La siguiente petición tarda ~50s en despertar (<em>cold start</em>).</li>
+    <li>⚠️ <strong>512 MB de RAM</strong> — suficiente para NestJS, pero si la DB crece o hay muchas peticiones concurrentes puede crashear.</li>
+    <li>⚠️ <strong>750 horas/mes gratuitas</strong> — un servicio 24/7 ocupa ~720h, da justo para uno solo.</li>
+    <li>⚠️ <strong>Sin disco persistente:</strong> los archivos subidos (<code>uploads/</code>) se pierden en cada redeploy. Para producción real necesitas S3 / Cloudflare R2.</li>
+  </ul>
+</div>
+
+<h3>Neon Free</h3>
+<div class="callout">
+  <ul style="margin: 0;">
+    <li>✅ 0.5 GB de almacenamiento (suficiente para miles de cursos/usuarios)</li>
+    <li>⚠️ La DB también se <strong>suspende</strong> tras inactividad. La primera consulta tarda 1-2s en despertar.</li>
+    <li>⚠️ 1 proyecto, 10 ramas</li>
+  </ul>
+</div>
+
+<h2>6. Cómo se ve un request real (login del usuario)</h2>
+
+<p>Cuando un usuario hace login en <code>https://elevva-cursos.pages.dev/login</code>:</p>
+
+<ol>
+  <li><strong>Cloudflare</strong> sirve el HTML/JS al navegador (instantáneo, está cacheado globalmente).</li>
+  <li>El usuario rellena el formulario y React hace <code>POST</code> a <code>https://elevva-cursos-render.onrender.com/api/auth/login</code>.</li>
+  <li><strong>Render</strong> despierta su servidor si estaba dormido (~50s la primera vez), recibe la petición.</li>
+  <li>El backend valida CORS (origen = <code>elevva-cursos.pages.dev</code> ✓ permitido).</li>
+  <li>Consulta a <strong>Neon</strong>: <code>SELECT * FROM users WHERE email = ...</code></li>
+  <li>Si las credenciales son correctas, firma un <strong>JWT</strong> con <code>JWT_SECRET</code> y lo devuelve.</li>
+  <li>El frontend guarda el token y redirige al dashboard.</li>
+</ol>
+
+<h2>7. Para producción real (cuando quieras escalar)</h2>
+
+<p>Cuando tengas usuarios reales y los problemas de cold start molesten:</p>
+
+<table>
+  <thead>
+    <tr><th>Hoy (gratis)</th><th>Producción real</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Render Free (con spin down)</td><td>Render <strong>Starter $7/mes</strong> (sin spin down)</td></tr>
+    <tr><td>Uploads en disco local (se pierden)</td><td><strong>Cloudflare R2</strong> o <strong>AWS S3</strong></td></tr>
+    <tr><td><code>pages.dev</code> subdominio</td><td>Tu dominio propio (<code>elevva.com</code>) — apuntando a Cloudflare Pages, gratis</td></tr>
+    <tr><td>Neon Free (0.5 GB)</td><td>Neon Pro o similar si la DB crece</td></tr>
+  </tbody>
+</table>
+
+<h2>8. Resumen rápido de tus URLs</h2>
+
+<table>
+  <thead>
+    <tr><th>Servicio</th><th>URL</th><th>Función</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Frontend</strong></td>
+      <td><code>elevva-cursos.pages.dev</code></td>
+      <td>Lo que ven los usuarios</td>
+    </tr>
+    <tr>
+      <td><strong>Backend</strong></td>
+      <td><code>elevva-cursos-render.onrender.com</code></td>
+      <td>API que procesa la lógica</td>
+    </tr>
+    <tr>
+      <td><strong>Base de datos</strong></td>
+      <td><code>ep-noisy-shape-an580eey...neon.tech</code></td>
+      <td>Datos persistentes</td>
+    </tr>
+    <tr>
+      <td><strong>Repositorio</strong></td>
+      <td><code>github.com/NASCoder139/Elevva-Cursos</code></td>
+      <td>Código fuente</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  <p>Elevva — Plataforma de cursos online</p>
+  <p>Documento generado el 27 de abril, 2026</p>
+</div>
+
+</body>
+</html>

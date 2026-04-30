@@ -7,6 +7,7 @@ import { MercadoPagoService } from './mercadopago.service';
 import { PayPalService } from './paypal.service';
 import { PlansService } from './plans.service';
 import { CouponsService } from '../coupons/coupons.service';
+import { SiteSettingsService } from '../site-settings/site-settings.service';
 import {
   PLAN_LABELS,
   PlanKey,
@@ -27,6 +28,7 @@ export class PaymentsService {
     private mail: MailService,
     private plansSvc: PlansService,
     private couponsSvc: CouponsService,
+    private siteSettings: SiteSettingsService,
   ) {}
 
   private get frontendUrl() {
@@ -40,13 +42,63 @@ export class PaymentsService {
   private get successUrl() { return `${this.frontendUrl}/payment/result`; }
   private get cancelUrl() { return `${this.frontendUrl}/payment/result?status=cancelled`; }
 
+  /** Tasa USD → CLP desde DB. Fallback razonable si no hay valor. */
+  async getUsdToClp(): Promise<number> {
+    const t = await this.siteSettings.getTaxes();
+    return t.usdToClp || 950;
+  }
+
+  /** Tasa de IVA (porcentaje) desde DB. */
+  async getTaxRate(): Promise<number> {
+    const t = await this.siteSettings.getTaxes();
+    return t.taxRatePercent || 19;
+  }
+
+  /**
+   * Aplica IVA al monto NETO en USD. Se aplica a TODOS los clientes
+   * (régimen general SII para servicios digitales no exportados).
+   */
+  private async applyTaxUSD(netUSD: number): Promise<number> {
+    const rate = await this.getTaxRate();
+    return netUSD * (1 + rate / 100);
+  }
+
+  /**
+   * Convierte un monto BRUTO (con IVA) en USD a la moneda del checkout
+   * según el proveedor.
+   * - MercadoPago Chile → CLP redondeado a entero (sin decimales).
+   * - PayPal → USD con 2 decimales.
+   */
+  private async toCheckoutAmount(grossUSD: number, provider: ProviderKey): Promise<{ amount: number; currency: 'USD' | 'CLP' }> {
+    if (provider === 'MERCADOPAGO') {
+      const rate = await this.getUsdToClp();
+      return { amount: Math.round(grossUSD * rate), currency: 'CLP' };
+    }
+    return { amount: Math.round(grossUSD * 100) / 100, currency: 'USD' };
+  }
+
+  /**
+   * Determina el proveedor a usar según el país del usuario.
+   * - Chile → MercadoPago
+   * - Cualquier otro → PayPal
+   * Lanza si el usuario no tiene país configurado.
+   */
+  private async resolveProvider(userId: string): Promise<ProviderKey> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { country: true } });
+    if (!user?.country) {
+      throw new BadRequestException('Configura tu país en tu perfil antes de continuar con el pago');
+    }
+    return user.country.trim().toLowerCase() === 'chile' ? 'MERCADOPAGO' : 'PAYPAL';
+  }
+
   async checkoutCourse(
     userId: string,
     courseId: string,
-    providerInput: ProviderKey = 'MERCADOPAGO',
+    _providerInput: ProviderKey = 'MERCADOPAGO',
     couponCode?: string,
   ) {
-    const provider: ProviderKey = providerInput || 'MERCADOPAGO';
+    // Backend determina el provider según el país del usuario (ignora frontend hint).
+    const provider: ProviderKey = await this.resolveProvider(userId);
     const course = await this.prisma.course.findUnique({ where: { id: courseId } });
     if (!course) throw new NotFoundException('Curso no encontrado');
     if (!course.price || Number(course.price) <= 0) {
@@ -62,8 +114,9 @@ export class PaymentsService {
     const applied = couponCode
       ? await this.couponsSvc.validate(couponCode, 'COURSE', baseAmount)
       : null;
-    const amount = applied ? applied.finalAmount : baseAmount;
-    const currency = 'USD';
+    const netUSD = applied ? applied.finalAmount : baseAmount;
+    const grossUSD = await this.applyTaxUSD(netUSD);
+    const { amount, currency } = await this.toCheckoutAmount(grossUSD, provider);
 
     const payment = await this.prisma.payment.create({
       data: {
@@ -75,7 +128,7 @@ export class PaymentsService {
         status: 'PENDING',
         couponCode: applied?.code,
         discountAmount: applied?.discountAmount,
-        mpDetail: { courseId: course.id, baseAmount, couponId: applied?.couponId } as any,
+        mpDetail: { courseId: course.id, baseAmount, couponId: applied?.couponId, netUSD, grossUSD } as any,
       },
     });
 
@@ -110,10 +163,10 @@ export class PaymentsService {
   async checkoutCategory(
     userId: string,
     categoryId: string,
-    providerInput: ProviderKey = 'MERCADOPAGO',
+    _providerInput: ProviderKey = 'MERCADOPAGO',
     couponCode?: string,
   ) {
-    const provider: ProviderKey = providerInput || 'MERCADOPAGO';
+    const provider: ProviderKey = await this.resolveProvider(userId);
     const category = await this.prisma.category.findUnique({ where: { id: categoryId } });
     if (!category) throw new NotFoundException('Categoría no encontrada');
     if (!category.price || Number(category.price) <= 0) {
@@ -129,8 +182,9 @@ export class PaymentsService {
     const applied = couponCode
       ? await this.couponsSvc.validate(couponCode, 'CATEGORY', baseAmount)
       : null;
-    const amount = applied ? applied.finalAmount : baseAmount;
-    const currency = 'USD';
+    const netUSD = applied ? applied.finalAmount : baseAmount;
+    const grossUSD = await this.applyTaxUSD(netUSD);
+    const { amount, currency } = await this.toCheckoutAmount(grossUSD, provider);
 
     const payment = await this.prisma.payment.create({
       data: {
@@ -142,7 +196,7 @@ export class PaymentsService {
         status: 'PENDING',
         couponCode: applied?.code,
         discountAmount: applied?.discountAmount,
-        mpDetail: { categoryId: category.id, baseAmount, couponId: applied?.couponId } as any,
+        mpDetail: { categoryId: category.id, baseAmount, couponId: applied?.couponId, netUSD, grossUSD } as any,
       },
     });
 
@@ -177,10 +231,10 @@ export class PaymentsService {
   async subscribe(
     userId: string,
     plan: PlanKey,
-    providerInput: ProviderKey = 'MERCADOPAGO',
+    _providerInput: ProviderKey = 'MERCADOPAGO',
     couponCode?: string,
   ) {
-    const provider: ProviderKey = providerInput || 'MERCADOPAGO';
+    const provider: ProviderKey = await this.resolveProvider(userId);
     const existing = await this.prisma.subscription.findUnique({ where: { userId } });
     if (existing && existing.status === 'ACTIVE') {
       throw new BadRequestException('Ya tenés una suscripción activa');
@@ -193,7 +247,9 @@ export class PaymentsService {
     const applied = couponCode
       ? await this.couponsSvc.validate(couponCode, 'PLAN', baseAmount)
       : null;
-    const amount = applied ? applied.finalAmount : baseAmount;
+    const netUSD = applied ? applied.finalAmount : baseAmount;
+    const grossUSD = await this.applyTaxUSD(netUSD);
+    const { amount } = await this.toCheckoutAmount(grossUSD, provider);
     const paymentType = planToPaymentType(plan);
 
     const sub = existing
@@ -396,6 +452,17 @@ export class PaymentsService {
     const info = await this.paypal.getSubscription(paypalSubId);
     if (!info) return;
 
+    // PayPal 404: la suscripción ya no existe (borrada o de otro entorno).
+    // La marcamos como CANCELLED localmente para que el cron deje de intentarlo.
+    if (info.__notFound) {
+      this.logger.warn(`Suscripción PayPal ${paypalSubId} no existe en PayPal — marcando CANCELLED en DB`);
+      await this.prisma.subscription.update({
+        where: { id: sub.id },
+        data: { status: 'CANCELLED', cancelledAt: sub.cancelledAt ?? new Date() },
+      });
+      return;
+    }
+
     const status = info.status as string;
     const mapped =
       status === 'ACTIVE'
@@ -451,7 +518,22 @@ export class PaymentsService {
 
     if (mapped === 'ACTIVE' && current.status !== 'ACTIVE') {
       const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true } });
-      if (user) this.mail.send(user.email, 'subscriptionActivated', { firstName: user.firstName }).catch(() => {});
+      if (user) {
+        const isAnnual = plan === 'SUBSCRIPTION_ANNUAL';
+        const planLabel = isAnnual ? 'Membresía Elevva Pro Anual' : 'Membresía Elevva Pro Mensual';
+        const typeLabel = isAnnual ? 'Suscripción anual' : 'Suscripción mensual';
+        const planRecord = await this.prisma.plan.findUnique({ where: { key: plan }, select: { price: true, currency: true } });
+        const amount = planRecord?.price ? Number(planRecord.price).toLocaleString('es-AR') : '—';
+        const currency = planRecord?.currency ?? 'USD';
+        this.mail.send(user.email, 'subscriptionActivated', {
+          firstName: user.firstName,
+          productName: planLabel,
+          productType: typeLabel,
+          date: new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' }),
+          amount,
+          currency,
+        }).catch(() => {});
+      }
     }
   }
 
@@ -480,9 +562,22 @@ export class PaymentsService {
     }
   }
 
-  private async notifyPaymentApproved(userId: string, amount: number) {
+  private async notifyPaymentApproved(
+    userId: string,
+    amount: number,
+    productName: string,
+    productType: string,
+    currency: string,
+  ) {
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true } });
-    if (user) this.mail.send(user.email, 'paymentApproved', { firstName: user.firstName, amount: amount.toLocaleString('es-AR') }).catch(() => {});
+    if (user) this.mail.send(user.email, 'paymentApproved', {
+      firstName: user.firstName,
+      productName,
+      productType,
+      date: new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' }),
+      amount: amount.toLocaleString('es-AR'),
+      currency,
+    }).catch(() => {});
   }
 
   private async grantAccessForPayment(paymentId: string) {
@@ -509,7 +604,26 @@ export class PaymentsService {
         },
       });
       if (payment.couponCode) await this.couponsSvc.incrementUsage(payment.couponCode);
-      this.notifyPaymentApproved(payment.userId, Number(payment.amount));
+
+      let productName = 'Tu compra en Elevva';
+      let productType = 'Curso individual';
+      if (payment.type === 'ONE_TIME_COURSE' && courseId) {
+        const course = await this.prisma.course.findUnique({ where: { id: courseId }, select: { title: true } });
+        if (course) productName = course.title;
+        productType = 'Curso individual';
+      } else if (payment.type === 'ONE_TIME_CATEGORY' && categoryId) {
+        const category = await this.prisma.category.findUnique({ where: { id: categoryId }, select: { name: true } });
+        if (category) productName = `Categoría: ${category.name}`;
+        productType = 'Acceso a categoría completa';
+      }
+
+      this.notifyPaymentApproved(
+        payment.userId,
+        Number(payment.amount),
+        productName,
+        productType,
+        payment.currency || 'USD',
+      );
     }
   }
 

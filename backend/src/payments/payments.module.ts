@@ -6,9 +6,10 @@ import { PayPalService } from './paypal.service';
 import { PlansService } from './plans.service';
 import { PlansController } from './plans.controller';
 import { CouponsModule } from '../coupons/coupons.module';
+import { SiteSettingsModule } from '../site-settings/site-settings.module';
 
 @Module({
-  imports: [CouponsModule],
+  imports: [CouponsModule, SiteSettingsModule],
   controllers: [PaymentsController, PlansController],
   providers: [PaymentsService, MercadoPagoService, PayPalService, PlansService],
   exports: [PaymentsService, MercadoPagoService, PayPalService, PlansService],

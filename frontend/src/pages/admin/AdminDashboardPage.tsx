@@ -12,7 +12,12 @@ import { adminApi, type AdminStats } from '../../api/admin.api';
 import { Spinner } from '../../components/ui/Spinner';
 
 function formatCurrency(n: number) {
-  return `$${n.toLocaleString('es-CL')}`;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
 }
 
 function formatDate(d: string) {
@@ -543,7 +548,7 @@ export default function AdminDashboardPage() {
                         </span>
                       </td>
                       <td className="px-5 py-3 text-right font-medium text-white tabular-nums">
-                        {formatCurrency(Number(p.amount))}
+                        {formatCurrency(Number(p.amountUSD ?? p.amount))}
                       </td>
                       <td className="px-5 py-3 text-right text-xs text-surface-500">
                         {new Date(p.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })}

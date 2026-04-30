@@ -7,6 +7,7 @@ import { useInterests } from '../../hooks/useInterests';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
+import { COUNTRIES } from '../../lib/countries';
 
 type Tab = 'profile' | 'security' | 'interests';
 
@@ -50,13 +51,14 @@ export default function ProfilePage() {
 function ProfileForm({ user, onUpdate }: { user: any; onUpdate: (u: any) => void }) {
   const [firstName, setFirstName] = useState(user.firstName || '');
   const [lastName, setLastName] = useState(user.lastName || '');
+  const [country, setCountry] = useState(user.country || '');
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data } = await usersApi.updateProfile({ firstName, lastName });
+      const { data } = await usersApi.updateProfile({ firstName, lastName, country: country || undefined });
       onUpdate(data.data);
       toast.success('Perfil actualizado');
     } catch {
@@ -71,6 +73,22 @@ function ProfileForm({ user, onUpdate }: { user: any; onUpdate: (u: any) => void
       <Input label="Nombre" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
       <Input label="Apellido" value={lastName} onChange={(e) => setLastName(e.target.value)} />
       <Input label="Email" value={user.email} disabled />
+      <label className="block">
+        <span className="mb-1.5 block text-sm font-medium text-surface-700 dark:text-surface-300">País</span>
+        <select
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          className="w-full rounded-lg border border-surface-300 bg-white px-3 py-2.5 text-sm dark:border-surface-700 dark:bg-surface-800"
+        >
+          <option value="">Selecciona tu país...</option>
+          {COUNTRIES.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        <span className="mt-1 block text-xs text-surface-500">
+          Determina el método de pago disponible: MercadoPago en Chile, PayPal en otros países.
+        </span>
+      </label>
       <Button type="submit" isLoading={saving}>Guardar cambios</Button>
     </form>
   );

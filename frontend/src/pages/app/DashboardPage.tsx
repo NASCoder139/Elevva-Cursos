@@ -308,10 +308,10 @@ export function DashboardPage() {
             <BookOpen className="h-10 w-10 text-surface-600 mx-auto mb-3" />
             <p className="text-sm text-surface-400 mb-3">Aún no has comenzado ningún curso.</p>
             <Link
-              to="/catalog"
+              to="/shop"
               className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 transition"
             >
-              Explorar catálogo <ArrowRight className="h-4 w-4" />
+              Explorar tienda <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         ) : (
@@ -322,7 +322,7 @@ export function DashboardPage() {
                 className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-2xl border border-surface-800/60 bg-surface-900 p-4 transition hover:border-primary-500/30"
               >
                 <Link
-                  to={`/course/${item.slug}/learn/${item.lastLessonId}`}
+                  to={`/course/${item.slug}`}
                   className="relative w-full sm:w-44 aspect-video flex-shrink-0 overflow-hidden rounded-xl bg-surface-800"
                 >
                   {item.thumbnailUrl ? (
@@ -358,7 +358,7 @@ export function DashboardPage() {
                 </div>
 
                 <Link
-                  to={`/course/${item.slug}/learn/${item.lastLessonId}`}
+                  to={`/course/${item.slug}`}
                   className="flex-shrink-0 inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 transition"
                 >
                   Continuar <ArrowRight className="h-4 w-4" />

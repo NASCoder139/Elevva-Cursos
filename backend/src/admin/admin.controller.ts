@@ -12,7 +12,7 @@ import type { UpdatePlanDto } from '../payments/plans.service';
 import { CouponsService } from '../coupons/coupons.service';
 import type { CreateCouponDto, UpdateCouponDto } from '../coupons/coupons.service';
 import { SiteSettingsService } from '../site-settings/site-settings.service';
-import type { UpdatePromoRibbonDto, UpdatePlansPromoDto } from '../site-settings/site-settings.service';
+import type { UpdatePromoRibbonDto, UpdatePlansPromoDto, UpdateTaxesDto } from '../site-settings/site-settings.service';
 
 @Controller('admin')
 @Roles(Role.ADMIN)
@@ -218,5 +218,15 @@ export class AdminController {
   @Patch('plans-promo')
   updatePlansPromo(@Body() dto: UpdatePlansPromoDto) {
     return this.siteSettings.updatePlansPromo(dto);
+  }
+
+  @Get('taxes')
+  getTaxes() {
+    return this.siteSettings.getTaxes();
+  }
+
+  @Patch('taxes')
+  updateTaxes(@Body() dto: UpdateTaxesDto) {
+    return this.siteSettings.updateTaxes(dto);
   }
 }

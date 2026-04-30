@@ -10,6 +10,7 @@ export interface LessonDetail extends Lesson {
   progress: { watchedSeconds: number; isCompleted: boolean };
   hasAccess: boolean;
   accessReason: string | null;
+  bunnyEmbedUrl: string | null;
 }
 
 export const lessonsApi = {

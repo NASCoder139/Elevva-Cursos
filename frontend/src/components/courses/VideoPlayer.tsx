@@ -5,6 +5,8 @@ import { Spinner } from '../ui/Spinner';
 
 interface VideoPlayerProps {
   lessonId: string;
+  /** Si la lesson tiene video en Bunny, se usa este iframe en vez del proxy de Drive. */
+  bunnyEmbedUrl?: string | null;
   onTimeUpdate?: (seconds: number) => void;
   onEnded?: () => void;
   onCompleted?: () => void;
@@ -13,11 +15,44 @@ interface VideoPlayerProps {
 
 export default function VideoPlayer({
   lessonId,
+  bunnyEmbedUrl,
   onTimeUpdate,
   onEnded,
   onCompleted,
   startAt = 0,
 }: VideoPlayerProps) {
+  // ── Modo Bunny (iframe) ─────────────────────────────────────────────
+  if (bunnyEmbedUrl) {
+    return (
+      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+        <iframe
+          src={bunnyEmbedUrl}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full"
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+
+  // ── Modo Drive proxy (legacy) ───────────────────────────────────────
+  return <DriveProxyPlayer
+    lessonId={lessonId}
+    startAt={startAt}
+    onTimeUpdate={onTimeUpdate}
+    onEnded={onEnded}
+    onCompleted={onCompleted}
+  />;
+}
+
+function DriveProxyPlayer({
+  lessonId,
+  onTimeUpdate,
+  onEnded,
+  onCompleted,
+  startAt = 0,
+}: Omit<VideoPlayerProps, 'bunnyEmbedUrl'>) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [token, setToken] = useState<string | null>(getAccessToken());
   const lastSavedRef = useRef(0);
@@ -49,7 +84,6 @@ export default function VideoPlayer({
     lastSentSecondRef.current = seconds;
     onTimeUpdate?.(seconds);
 
-    // Guarda cada 10s para no saturar
     if (seconds - lastSavedRef.current >= 10) {
       lastSavedRef.current = seconds;
       progressApi.update(lessonId, seconds).catch(() => null);

@@ -70,7 +70,13 @@ export class PayPalService {
     const text = await res.text();
     const json = text ? JSON.parse(text) : {};
     if (!res.ok) {
-      this.logger.error(`PayPal ${path} ${res.status}: ${text}`);
+      // 404 al consultar una suscripción es un caso esperado (suscripción borrada).
+      // Lo logueamos como warn para no inflar el panel de errores.
+      if (res.status === 404) {
+        this.logger.warn(`PayPal ${path} 404 (recurso no encontrado)`);
+      } else {
+        this.logger.error(`PayPal ${path} ${res.status}: ${text}`);
+      }
       throw new Error(`PayPal error ${res.status}: ${json?.message || res.statusText}`);
     }
     return json as T;
@@ -211,7 +217,17 @@ export class PayPalService {
 
   async getSubscription(subId: string): Promise<any> {
     if (!this.isConfigured) return null;
-    return this.request(`/v1/billing/subscriptions/${subId}`);
+    try {
+      return await this.request(`/v1/billing/subscriptions/${subId}`);
+    } catch (err: any) {
+      // 404 = suscripción no existe en PayPal (fue eliminada o es de otro entorno).
+      // Devolvemos null para que el caller la marque como CANCELLED en local
+      // sin loggear un stack trace ruidoso.
+      if (typeof err?.message === 'string' && err.message.includes('PayPal error 404')) {
+        return { __notFound: true };
+      }
+      throw err;
+    }
   }
 
   async cancelSubscription(subId: string, reason = 'User requested cancellation'): Promise<void> {
