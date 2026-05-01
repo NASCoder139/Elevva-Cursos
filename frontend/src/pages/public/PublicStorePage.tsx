@@ -12,11 +12,9 @@ import {
   Crown,
   ShieldCheck,
   BadgeCheck,
-  Rocket,
   RefreshCw,
   Headphones,
   Layers,
-  TrendingUp,
   PlayCircle,
 } from 'lucide-react';
 import { useCategories } from '../../hooks/useCategories';
@@ -144,122 +142,6 @@ function StoreCard({ course, isAuth }: { course: Course; isAuth: boolean }) {
         </div>
       </div>
     </article>
-  );
-}
-
-function HeroBanner() {
-  return (
-    <section className="relative overflow-hidden rounded-[20px] border border-primary-500/20 bg-gradient-to-br from-[#14092e] via-[#0f0b22] to-[#0a0d1a] p-7 shadow-[0_30px_80px_-40px] shadow-primary-900/60 sm:p-8">
-      <div aria-hidden className="pointer-events-none absolute right-0 top-0 h-[260px] w-[260px] rounded-full bg-primary-600/25 blur-[90px]" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-20 left-20 h-[220px] w-[220px] rounded-full bg-fuchsia-600/15 blur-[90px]" />
-
-      <div className="relative grid min-h-[300px] items-center gap-8 lg:grid-cols-[55fr_45fr]">
-        <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary-500/30 bg-primary-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary-300">
-            <Sparkles className="h-3 w-3" /> Plataforma #1 en educación digital
-          </span>
-
-          <h1 className="mt-4 text-[28px] font-bold leading-[1.12] text-white sm:text-[32px] lg:text-[36px]">
-            Aprende{' '}
-            <span className="bg-gradient-to-r from-primary-300 to-fuchsia-400 bg-clip-text text-transparent">
-              habilidades digitales
-            </span>{' '}
-            con cursos prácticos y acceso inmediato
-          </h1>
-
-          <p className="mt-3 max-w-[520px] text-[14px] leading-relaxed text-surface-300">
-            Miles de alumnos ya están transformando su futuro con cursos actualizados, prácticos y enfocados en resultados reales.
-          </p>
-
-          <div className="mt-5 grid max-w-[460px] grid-cols-3 gap-2.5">
-            <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2">
-              <div className="text-[16px] font-bold text-white">+5.000</div>
-              <div className="text-[10px] text-surface-400">Alumnos activos</div>
-            </div>
-            <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2">
-              <div className="text-[16px] font-bold text-white">7 días</div>
-              <div className="text-[10px] text-surface-400">Garantía total</div>
-            </div>
-            <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2">
-              <div className="text-[16px] font-bold text-white">De por vida</div>
-              <div className="text-[10px] text-surface-400">Actualizaciones</div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-2.5">
-            <a
-              href="#catalogo"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-[13px] font-semibold text-white shadow-lg shadow-primary-900/40 transition hover:bg-primary-500"
-            >
-              <Rocket className="h-4 w-4" /> Explorar cursos
-              <ArrowRight className="h-3.5 w-3.5" />
-            </a>
-            <Link
-              to="/#pricing"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-[13px] font-semibold text-white backdrop-blur-sm transition hover:bg-white/[0.08]"
-            >
-              <Crown className="h-4 w-4 text-amber-300" /> Ver planes
-            </Link>
-          </div>
-        </div>
-
-        <div className="relative hidden h-full lg:block">
-          <div className="relative mx-auto h-[280px] w-full max-w-[420px]">
-            <div
-              aria-hidden
-              className="absolute left-6 top-4 h-full w-[88%] rotate-[-4deg] rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent"
-            />
-            <div
-              aria-hidden
-              className="absolute right-6 top-6 h-full w-[88%] rotate-[3deg] rounded-2xl border border-fuchsia-500/15 bg-gradient-to-br from-fuchsia-500/[0.06] to-transparent"
-            />
-            <div className="relative overflow-hidden rounded-2xl border border-white/[0.1] bg-[#10161D] shadow-2xl shadow-black/50">
-              <div className="relative aspect-video bg-gradient-to-br from-primary-600/40 via-fuchsia-600/20 to-surface-900">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15 backdrop-blur-md ring-1 ring-white/20">
-                    <PlayCircle className="h-7 w-7 text-white" />
-                  </div>
-                </div>
-                <span className="absolute left-3 top-3 rounded-md bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface-950">
-                  Top ventas
-                </span>
-              </div>
-              <div className="p-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-400">Redes sociales</p>
-                <p className="mt-1 text-[13px] font-semibold leading-snug text-white">Cómo crecer a 1M de seguidores con contenido viral</p>
-                <div className="mt-2 flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-[11px] text-surface-400">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                    ))}
-                    <span className="ml-1">5.0</span>
-                  </div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-[11px] text-surface-500 line-through">$21</span>
-                    <span className="text-[15px] font-bold text-primary-400">$14</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="absolute -bottom-3 -left-3 flex items-center gap-2 rounded-xl border border-white/10 bg-[#10161D]/90 px-3 py-2 shadow-xl shadow-black/40 backdrop-blur-md">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15">
-                <TrendingUp className="h-4 w-4 text-emerald-400" />
-              </div>
-              <div className="leading-tight">
-                <div className="text-[11px] text-surface-400">Este mes</div>
-                <div className="text-[13px] font-bold text-white">+180% alumnos</div>
-              </div>
-            </div>
-
-            <div className="absolute -right-2 top-6 flex items-center gap-2 rounded-xl border border-amber-500/20 bg-[#10161D]/90 px-3 py-2 shadow-xl shadow-black/40 backdrop-blur-md">
-              <Crown className="h-4 w-4 text-amber-300" />
-              <div className="text-[12px] font-semibold text-white">Certificado</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -397,9 +279,7 @@ export default function PublicStorePage() {
 
   return (
     <div className="mx-auto max-w-[1280px] px-4 pt-24 pb-16 sm:px-6 lg:px-8 lg:pt-28">
-      <HeroBanner />
-
-      <div className="mt-6">
+      <div>
         <SocialProofBar />
       </div>
 

@@ -10,6 +10,11 @@
 
 # Credenciales y uploads
 **/credentials/
+
+# Scripts one-shot con credenciales hardcoded (para uso local, no commitear)
+backend/scripts/sync-prices-local-to-neon.ts
+backend/scripts/sync-course-settings-local-to-neon.ts
+backend/scripts/sync-thumbnails-local-to-neon.ts
 backend/uploads/
 /uploads/
 **/*.pem
