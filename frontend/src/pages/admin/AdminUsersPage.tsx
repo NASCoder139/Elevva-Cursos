@@ -487,7 +487,7 @@ function UserDetailPanel({ detail, row }: { detail: AdminUserDetail | 'loading' 
                 <div className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs">
                   <span className="text-surface-600 dark:text-surface-400">Último cobro</span>
                   <span className="font-semibold text-emerald-600 dark:text-emerald-300">
-                    {fmtMoney(activePayment.amount, activePayment.currency)}
+                    {fmtMoney((activePayment as any).amountUSD ?? activePayment.amount, 'USD')}
                   </span>
                 </div>
               )}
@@ -508,7 +508,7 @@ function UserDetailPanel({ detail, row }: { detail: AdminUserDetail | 'loading' 
               </div>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <MiniField label="Fecha" value={fmtDate(activePayment.createdAt)} />
-                <MiniField label="Total" value={fmtMoney(activePayment.amount, activePayment.currency)} />
+                <MiniField label="Total" value={fmtMoney((activePayment as any).amountUSD ?? activePayment.amount, 'USD')} />
               </div>
               <MiniField
                 label="Método"
@@ -593,7 +593,7 @@ function UserDetailPanel({ detail, row }: { detail: AdminUserDetail | 'loading' 
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="text-sm font-semibold tabular-nums text-surface-900 dark:text-white">
-                    {fmtMoney(p.amount, p.currency)}
+                    {fmtMoney((p as any).amountUSD ?? p.amount, 'USD')}
                   </span>
                   <StatusPill status={p.status === 'APPROVED' ? 'COMPLETED' : p.status} />
                 </div>

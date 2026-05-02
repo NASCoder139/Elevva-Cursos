@@ -404,7 +404,12 @@ export class AdminService {
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
     const approved = user.payments.filter((p) => p.status === 'APPROVED');
-    const totalSpent = approved.reduce((s, p) => s + Number(p.amount), 0);
+    // Normalizamos a USD: pagos pueden estar en CLP (clientes Chile vía MP) o USD (PayPal).
+    const { usdToClp } = await this.siteSettings.getTaxes();
+    const totalSpent = approved.reduce(
+      (s, p) => s + this.toUSD(p.amount as any, p.currency, usdToClp),
+      0,
+    );
     const courseCount = approved.filter(
       (p) => p.type === 'ONE_TIME_COURSE' || p.type === 'ONE_TIME_CATEGORY',
     ).length;
@@ -424,8 +429,16 @@ export class AdminService {
       ...safe
     } = user;
 
+    // Adjuntamos amountUSD a cada pago para que el frontend pueda mostrar
+    // todo en una sola moneda independiente del provider.
+    const paymentsWithUSD = safe.payments.map((p) => ({
+      ...p,
+      amountUSD: Math.round(this.toUSD(p.amount as any, p.currency, usdToClp) * 100) / 100,
+    }));
+
     return {
       ...safe,
+      payments: paymentsWithUSD,
       stats: {
         totalSpent,
         courseCount,

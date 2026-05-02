@@ -542,14 +542,61 @@ export class PaymentsService {
         const planLabel = isAnnual ? 'Membresía Elevva Pro Anual' : 'Membresía Elevva Pro Mensual';
         const typeLabel = isAnnual ? 'Suscripción anual' : 'Suscripción mensual';
         const planRecord = await this.prisma.plan.findUnique({ where: { key: plan }, select: { price: true, currency: true } });
-        const amount = planRecord?.price ? Number(planRecord.price).toLocaleString('es-AR') : '—';
+        const netAmountUSD = planRecord?.price ? Number(planRecord.price) : 0;
+
+        // ── Registrar el Payment del cobro de la suscripción ────────────────
+        // Sin esto, las suscripciones no aparecen en "Total gastado", "Pagos
+        // recientes" ni en las stats por usuario en el panel admin.
+        try {
+          const grossUSD = await this.applyTaxUSD(netAmountUSD);
+          const providerKey: ProviderKey = extra.paypalSubscriptionId ? 'PAYPAL' : 'MERCADOPAGO';
+          const { amount: chargedAmount, currency: chargedCurrency } = await this.toCheckoutAmount(grossUSD, providerKey);
+          const externalRef = extra.paypalSubscriptionId || extra.mpPreapprovalId || subId;
+          const existingPayment = await this.prisma.payment.findFirst({
+            where: {
+              userId,
+              type: plan,
+              status: 'APPROVED',
+              ...(extra.paypalSubscriptionId
+                ? { paypalOrderId: extra.paypalSubscriptionId }
+                : { mpPreapprovalId: extra.mpPreapprovalId }),
+            },
+          });
+          if (!existingPayment) {
+            await this.prisma.payment.create({
+              data: {
+                userId,
+                provider: providerKey as any,
+                type: plan,
+                amount: chargedAmount,
+                currency: chargedCurrency,
+                status: 'APPROVED',
+                ...(extra.paypalSubscriptionId
+                  ? { paypalOrderId: extra.paypalSubscriptionId }
+                  : { mpPreapprovalId: extra.mpPreapprovalId }),
+                mpDetail: {
+                  subscriptionId: subId,
+                  externalRef,
+                  netUSD: netAmountUSD,
+                  grossUSD,
+                  reason: 'subscription_activation',
+                } as any,
+              },
+            });
+          }
+        } catch (err) {
+          this.logger.warn(`[applySubscriptionStatus] No se pudo registrar Payment de suscripción: ${(err as Error).message}`);
+        }
+
+        // Email de confirmación
+        const amountStr = netAmountUSD ? netAmountUSD.toLocaleString('es-AR') : '—';
         const currency = planRecord?.currency ?? 'USD';
         this.mail.send(user.email, 'subscriptionActivated', {
           firstName: user.firstName,
           productName: planLabel,
           productType: typeLabel,
           date: new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' }),
-          amount,
+          amount: amountStr,
           currency,
         }).catch(() => {});
       }
