@@ -278,15 +278,25 @@ export class PaymentsService {
       return { subscriptionId: sub.id, providerRef: ppSub.id, initPoint: ppSub.approveUrl, provider };
     }
 
-    const pre = await this.mp.createPreapproval({
-      reason: PLAN_LABELS[plan],
-      amount,
-      frequency: planFrequency(plan),
-      frequencyType: 'months',
-      payerEmail: user.email,
-      backUrl: this.successUrl,
-      externalReference: sub.id,
-    });
+    this.logger.log(`[subscribe] Creando preapproval MP — plan=${plan} amount=${amount} CLP user=${user.email}`);
+    let pre;
+    try {
+      pre = await this.mp.createPreapproval({
+        reason: PLAN_LABELS[plan],
+        amount,
+        frequency: planFrequency(plan),
+        frequencyType: 'months',
+        payerEmail: user.email,
+        backUrl: this.successUrl,
+        externalReference: sub.id,
+      });
+    } catch (err: any) {
+      this.logger.error(`[subscribe] MP createPreapproval falló: ${err?.message}`);
+      this.logger.error(`[subscribe] MP error detail: ${JSON.stringify(err?.cause || err?.response?.data || err, null, 2)}`);
+      throw new BadRequestException(
+        'No se pudo crear la suscripción con MercadoPago. Activa "Suscripciones" en tu app de MP o contacta soporte.',
+      );
+    }
 
     if (pre.id) {
       await this.prisma.subscription.update({
