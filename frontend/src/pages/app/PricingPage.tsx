@@ -9,7 +9,7 @@ import { Spinner } from '../../components/ui/Spinner';
 import { ProviderPicker } from '../../components/payments/ProviderPicker';
 import { PriceTag } from '../../components/ui/PriceTag';
 import { hasDiscount } from '../../lib/formatters';
-import { isChile } from '../../lib/countries';
+import { isChile, getForcedPaymentProvider } from '../../lib/countries';
 
 const planMeta: Record<string, { tagline: string; highlight: boolean }> = {
   SUBSCRIPTION_MONTHLY: { tagline: 'por mes', highlight: false },
@@ -85,7 +85,8 @@ export default function PricingPage() {
       return;
     }
     // Con país → directo al checkout. El backend determina el provider final.
-    const provider: PaymentProvider = isChile(user.country) ? 'MERCADOPAGO' : 'PAYPAL';
+    const forced = getForcedPaymentProvider();
+    const provider: PaymentProvider = forced ?? (isChile(user.country) ? 'MERCADOPAGO' : 'PAYPAL');
     handleSubscribe(plan, provider);
   };
 

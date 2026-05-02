@@ -3,7 +3,7 @@ import { X, Globe } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { usersApi } from '../../api/users.api';
-import { COUNTRIES, isChile } from '../../lib/countries';
+import { COUNTRIES, isChile, getForcedPaymentProvider } from '../../lib/countries';
 import { useTaxConfig } from '../../hooks/useExchangeRate';
 import { MercadoPagoLogo, PayPalLogo } from './ProviderLogos';
 import type { PaymentProvider } from '../../api/payments.api';
@@ -38,7 +38,10 @@ export function ProviderPicker({ open, title = 'Confirmar tu método de pago', p
   }, [open, user?.country]);
 
   const country = user?.country ?? null;
-  const provider: PaymentProvider | null = country ? (isChile(country) ? 'MERCADOPAGO' : 'PAYPAL') : null;
+  const forced = getForcedPaymentProvider();
+  const provider: PaymentProvider | null = country
+    ? (forced ?? (isChile(country) ? 'MERCADOPAGO' : 'PAYPAL'))
+    : null;
 
   // Auto-redirect: si el usuario ya tiene país configurado, no le hacemos
   // mostrar un modal con un solo botón. Iniciamos el checkout directo.
@@ -65,7 +68,7 @@ export function ProviderPicker({ open, title = 'Confirmar tu método de pago', p
       const { data } = await usersApi.updateProfile({ country: draftCountry });
       updateUser(data.data);
       // Lanzamos el redirect directo: el useEffect podría tardar un tick
-      const newProvider: PaymentProvider = isChile(draftCountry) ? 'MERCADOPAGO' : 'PAYPAL';
+      const newProvider: PaymentProvider = forced ?? (isChile(draftCountry) ? 'MERCADOPAGO' : 'PAYPAL');
       setRedirected(true);
       setLoading(newProvider);
       try {

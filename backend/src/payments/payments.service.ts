@@ -81,12 +81,21 @@ export class PaymentsService {
    * Determina el proveedor a usar según el país del usuario.
    * - Chile → MercadoPago
    * - Cualquier otro → PayPal
+   *
+   * Override: si `FORCE_PAYMENT_PROVIDER` está seteado, lo usa para TODOS
+   * los usuarios (útil mientras MP completa la verificación de la cuenta).
+   *
    * Lanza si el usuario no tiene país configurado.
    */
   private async resolveProvider(userId: string): Promise<ProviderKey> {
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { country: true } });
     if (!user?.country) {
       throw new BadRequestException('Configura tu país en tu perfil antes de continuar con el pago');
+    }
+    const forced = (this.config.get<string>('FORCE_PAYMENT_PROVIDER') || '').trim().toUpperCase();
+    if (forced === 'MERCADOPAGO' || forced === 'PAYPAL') {
+      this.logger.log(`[resolveProvider] FORCE_PAYMENT_PROVIDER=${forced} (override activo)`);
+      return forced as ProviderKey;
     }
     return user.country.trim().toLowerCase() === 'chile' ? 'MERCADOPAGO' : 'PAYPAL';
   }

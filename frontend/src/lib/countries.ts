@@ -37,3 +37,16 @@ export function isChile(country: string | null | undefined): boolean {
   if (!country) return false;
   return CHILE_ALIASES.has(country.trim().toLowerCase());
 }
+
+/**
+ * Override opcional del proveedor de pago (vía env var del frontend).
+ * Útil mientras MP completa la verificación de la cuenta y todos los pagos
+ * se canalizan por PayPal temporalmente.
+ *
+ * Valores válidos: 'MERCADOPAGO' | 'PAYPAL' | undefined
+ */
+export function getForcedPaymentProvider(): 'MERCADOPAGO' | 'PAYPAL' | null {
+  const v = (import.meta.env.VITE_FORCE_PAYMENT_PROVIDER || '').toString().trim().toUpperCase();
+  if (v === 'MERCADOPAGO' || v === 'PAYPAL') return v;
+  return null;
+}
