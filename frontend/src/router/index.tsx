@@ -80,11 +80,15 @@ const router = createBrowserRouter([
           { path: '/support', element: <SupportPage /> },
           { path: '/pricing', element: <PricingPage /> },
           { path: '/interests', element: <InterestsPage /> },
-          { path: '/payment/result', element: <PaymentResultPage /> },
         ],
       },
     ],
   },
+  // Ruta pública (sin layout) — los proveedores de pago redirigen acá tras
+  // completar la compra. La sesión puede haber expirado durante el roundtrip,
+  // por eso no la protegemos: el componente decide qué mostrar según haya
+  // o no usuario logueado.
+  { path: '/payment/result', element: <PaymentResultPage /> },
   {
     element: <AdminRoute />,
     children: [
